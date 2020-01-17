@@ -1,6 +1,11 @@
 A quick guide
 =============
 
+.. testsetup:: load
+   
+   import dlisio
+   filename = 'data/206_05a-_3_DWL_DWL_WIRE_258276498.DLIS' 
+
 This is a quick guide to get you started with dlisio. Note that all classes and
 functions are more thoroughly documented under :ref:`The Library`. Please refer
 there for more information about them.
@@ -10,12 +15,14 @@ interpreter and in the unix console, just type :code:`help(function)` or  :code:
 function`, respectably. In the interpreter, help can be used directly on
 class instances. E.g: :code:`help(frame)` or :code:`help(frame.curves)`
 
+
 Opening files
 -------------
 
 Load all :ref:`Logical files`:
 
-.. code-block:: python
+.. doctest:: load
+   :pyversion: >= 3.5 
 
     >>> with dlisio.load(filename) as files:
     ...     for f in files:
@@ -95,13 +102,21 @@ Or about a logical file:
     440-OP-CORE_TABLES      : 17
     440-OP-CHANNEL          : 101
 
+.. testsetup:: *
+   
+   import dlisio
+   filename = 'data/206_05a-_3_DWL_DWL_WIRE_258276498.DLIS' 
+   f, = dlisio.load(filename)
+   frame   = f.object('FRAME', '800T')
+   channel = f.object('CHANNEL', 'TDEP', 2, 0)
+
 Accessing objects
 -----------------
 
 Think of :ref:`Logical files` as pools of objects with different types.  All
 objects of a type can be reached by name, e.g. channels or coefficients:
 
-.. code-block:: python
+.. doctest::
 
     >>> for ch in f.channels:
     ...     pass
@@ -110,15 +125,20 @@ See :ref:`Logical files` for a full list of all object types.
 
 :py:func:`dlisio.dlis.object` lets you access a specific object:
 
-.. code-block:: python
+.. doctest:: 
 
-    >>> obj = f.object('CHANNEL', 'TDEP')
+    >>> f.object('CHANNEL', 'GR')
+    Channel(GR)
 
 Objects can also be searched for with :py:func:`dlisio.dlis.match()`:
 
-.. code-block:: python
+.. doctest:: 
 
-    >>> objs = f.match('T.*')
+    >>> for obj in f.match('T', 'CHANNEL'):
+    ...     print(obj)
+    Channel(TIME)
+    Channel(TIME)
+    Channel(TIME)
 
 Inspect an object with the :code:`.describe()`-method:
 
@@ -158,24 +178,24 @@ useful metadata in addition to the curve-values!
 Channels belonging to a Frame can be accessed directly through
 :py:attr:`dlisio.plumbing.Frame.channels`:
 
-.. code-block:: python
+.. doctest::
 
     >>> frame.channels[0]
-    Channel(TDEP)
+    Channel(TIME)
 
 Likewise, the parent-frame of a Channel can be accessed through the channel:
 
-.. code-block:: python
+.. doctest::
 
-    >>> ch.frame
+    >>> channel.frame
     Frame(800T)
 
 The actual curve data of a Channel is accessed by :py:func:`dlisio.plumbing.Channel.curves()`,
 which returns a structured numpy array that support common slicing operations:
 
-.. code-block:: python
+.. doctest::
 
-    >>> curve = ch.curves()
+    >>> curve = channel.curves()
     >>> curve[0:5]
     array([852606., 852606., 852606., 852606., 852606.], dtype=float32)
 
@@ -185,8 +205,8 @@ and/or sliced by samples:
 
 .. code-block:: python
 
-    >>> curves = fr.curves()
-    >>> curves[[fr.index, 'TENS_SL']][0:5]
+    >>> curves = frame.curves()
+    >>> curves[[frame.index, 'TENS_SL']][0:5]
     array([(16677259., 2233.), (16678259., 2237.), (16679259., 2211.),
            (16680259., 2193.), (16681259., 2213.)])
 

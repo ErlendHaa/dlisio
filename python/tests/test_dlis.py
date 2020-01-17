@@ -1,11 +1,17 @@
 import dlisio
 import pytest
+import doctest
 
 from dlisio.plumbing.channel import Channel
 from dlisio.plumbing.frame import Frame
 from dlisio.plumbing.unknown import Unknown
 
 from dlisio import core
+
+def test_docs():
+    res = doctest.testmod(dlisio.plumbing.origin)
+    print(res)
+    assert False
 
 @pytest.fixture(scope="module")
 def g():

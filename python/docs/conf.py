@@ -34,8 +34,16 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.imgmath',
     'sphinx.ext.autosectionlabel',
+    'sphinx.ext.doctest',
     'm2r'
 ]
+
+doctest_global_setup = '''
+import dlisio
+import pandas as pd
+filename = 'data/206_05a-_3_DWL_DWL_WIRE_258276498.DLIS'
+f,  = dlisio.load(filename)
+'''
 
 autosummary_generate = True
 add_module_names = False

@@ -1,3 +1,6 @@
+.. testsetup::
+   :skipif: True
+
 Open and Load
 =============
 .. autofunction:: dlisio.load

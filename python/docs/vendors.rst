@@ -8,7 +8,7 @@ The rp66v1 standard allows vendors to specify their own metadata objects. It
 also specifies that the type of such vendor-specific objects should always
 start with the organization code like so:
 
-.. code-block:: python
+.. doctest::
 
     >>> f.unknowns
     dict_keys(['440-FILE', '440-OP-TOOL', '440-CHANNEL'])
