@@ -67,6 +67,9 @@ truncated-in-lrsh.dlis              File is truncated in the LRSH
 truncated-on-full-lr.dlis           File is truncated on a complete LR, but not
                                     VR
 
+truncated-in-only-iflr.dlis         Truncated one byte before expected end of
+                                    long IFLR
+
 truncated-in-second-lr.dlis         Mismatch between visible record length and
                                     remaining bytes. Second LR truncated
 
