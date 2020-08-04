@@ -483,12 +483,10 @@ std::vector< T >& reset( dl::value_vector& value ) noexcept (false) {
     return value.emplace< std::vector< T > >();
 }
 
-const char* elements( const char* xs,
-                      dl::uvari count,
-                      dl::representation_code reprc,
-                      dl::value_vector& vec ) {
-
-    const auto n = dl::decay( count );
+const char* elements( const char* xs, dl::object_attribute& attr ) {
+    const auto reprc = attr.reprc;
+    dl::value_vector& vec = attr.value;
+    const auto n = dl::decay( attr.count );
 
     if (n == 0) {
         vec = mpark::monostate{};
@@ -565,6 +563,38 @@ noexcept (true) {
 }
 
 namespace dl {
+
+error_severity decrease(error_severity s)  noexcept (true)
+{
+    /*
+     * DEBUG is not even a true error, no reason to decrease it
+     * INFO is the lowest level of error possible, can't be decreased
+     * WARNING is severe enough that information that it happened should stay
+     * ERROR has to be decreased if other items in hierarchy were processed
+     */
+    switch(s)
+    {
+        case error_severity::DEBUG:   return error_severity::DEBUG;
+        case error_severity::INFO:    return error_severity::INFO;
+        case error_severity::WARNING: return error_severity::WARNING;
+        case error_severity::ERROR:   return error_severity::WARNING;
+        default:
+            throw std::runtime_error("decrease: unknown severity");
+    }
+}
+
+std::string dlis_error::message() const noexcept (true) {
+    const std::string problem = "Problem: " + this->problem + "." ;
+    std::string spec = "";
+    if (!this->specification.empty()) {
+        spec = "\nSpecification reference: " + this->specification + ".";
+    }
+    std::string action = "";
+    if (!this->action.empty()) {
+        action = "\nTaken action: " + this->action + ".";
+    }
+    return problem + spec + action;
+}
 
 bool object_attribute::operator == (const object_attribute& o)
 const noexcept (true) {
@@ -722,9 +752,7 @@ const char* object_set::parse_template( const char* cur) noexcept (false) {
         if (flags.count) cur = cast( cur, attr.count );
         if (flags.reprc) cur = cast( cur, attr.reprc );
         if (flags.units) cur = cast( cur, attr.units );
-        if (flags.value) cur = elements( cur, attr.count,
-                                              attr.reprc,
-                                              attr.value );
+        if (flags.value) cur = elements( cur, attr );
         attr.invariant = flags.invariant;
 
         tmp.push_back( std::move( attr ) );
@@ -775,7 +803,8 @@ struct shrink {
 
 void patch_missing_value( dl::value_vector& value,
                           std::size_t count,
-                          dl::representation_code reprc )
+                          dl::representation_code reprc,
+                          std::vector< dl::dlis_error >& info)
 noexcept (false)
 {
     /*
@@ -789,7 +818,21 @@ noexcept (false)
 
         /* smaller, shrink and all is fine */
         if (size > count) {
+
+            const auto msg = "Default value is not overridden, but new count "
+                             "is. count (which is {}) < original count (which "
+                             "is {})";
+
             mpark::visit( shrink( count ), value );
+            dlis_error err {
+                dl::error_severity::WARNING,
+                fmt::format(msg, count, size),
+                "3.2.2.1 Component Descriptor: The number of Elements that "
+                    "make up the Value is specified by the Count "
+                    "Characteristic.",
+                "shrank default value to new count"
+            };
+            info.push_back(err);
             return;
         }
 
@@ -892,28 +935,31 @@ const char* object_set::parse_objects(const char* cur) noexcept (false) {
             }
 
             if (flags.invariant) {
-                /*
-                 * 3.2.2.2 Component Usage
-                 *  Invariant Attribute Components, which may only appear in
-                 *  the Template [...]
-                 *
-                 * Assume this is a mistake, assume it was a regular
-                 * non-invariant attribute
-                 */
-                user_warning("ATTRIB:invariant in attribute, "
-                             "but should only be in template");
+                dlis_error err {
+                    dl::error_severity::WARNING,
+                    "Invariant attribute in object attributes",
+                    "3.2.2.2 Component Usage: Invariant Attribute Components, "
+                        "which may only appear in the Template [...]",
+                    "ignored invariant bit, assumed that attribute followed"
+                };
+                attr.info.push_back(err);
             }
 
             if (flags.label) {
-                user_warning( "ATTRIB:label set, but must be null");
+                dlis_error err {
+                    dl::error_severity::WARNING,
+                    "Label bit set in object attribute",
+                    "3.2.2.2 Component Usage: Attribute Components that follow "
+                        "Object Components must not have Attribute Labels",
+                    "ignored label bit, assumed that label never followed"
+                };
+                attr.info.push_back(err);
             }
 
             if (flags.count) cur = cast( cur, attr.count );
             if (flags.reprc) cur = cast( cur, attr.reprc );
             if (flags.units) cur = cast( cur, attr.units );
-            if (flags.value) cur = elements( cur, attr.count,
-                                                  attr.reprc,
-                                                  attr.value );
+            if (flags.value) cur = elements( cur, attr );
 
             const auto count = dl::decay( attr.count );
 
@@ -943,11 +989,17 @@ const char* object_set::parse_objects(const char* cur) noexcept (false) {
                     const auto msg = "count ({}) isn't 0 and representation "
                         "code ({}) changed, but value is not explicitly set";
                     const auto code = static_cast< int >(attr.reprc);
-                    user_warning(fmt::format(msg, count, code));
+                    dlis_error err {
+                        dl::error_severity::WARNING,
+                        fmt::format(msg, count, code),
+                        "-",
+                        "setting default value for new representation code"
+                    };
+                    attr.info.push_back(err);
                     attr.value = mpark::monostate{};
                 }
 
-                patch_missing_value( attr.value, count, attr.reprc );
+                patch_missing_value( attr.value, count, attr.reprc, attr.info);
             }
 
             current.set(attr);

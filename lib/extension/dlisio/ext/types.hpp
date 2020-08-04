@@ -68,6 +68,27 @@ enum class representation_code : std::uint8_t {
     undef  = DLIS_UNDEF,
 };
 
+
+enum class error_severity {
+    DEBUG   = 1, // everything seems fine, but situation itself is not typical
+    INFO    = 2, // contradicts specification, but recovery is most likely fine
+    WARNING = 3, // contradicts specification, not sure if recovery is ok
+    ERROR   = 4, // broken beyond repair, could not recover
+};
+/*
+ * Decrease severity for reports on items higher in hierarchy.
+ */
+error_severity decrease(error_severity s) noexcept (true);
+
+struct dlis_error {
+    error_severity severity;
+    std::string problem;
+    std::string specification;
+    std::string action;
+
+    std::string message() const noexcept (true);
+};
+
 /*
  * It's _very_ often necessary to access the raw underlying type of the strong
  * type aliases for comparisons, literals, or conversions. dl::decay inspects
@@ -402,6 +423,23 @@ struct record {
 
 /*
  * The structure of an attribute as described in 3.2.2.1
+ *
+ * Error handling:
+ *
+ * Due to the intricate structure of a dlis-file, dlisio typically over-parses
+ * when a certain piece of information is queried. This would typically make
+ * any warnings or errors issued from the parsing routines pre-mature and might
+ * result in the query failing due to an error in some (from a
+ * user-perspective) unrelated data.
+ *
+ * To combat this, the result of parsing routines (and the state of the
+ * parsed object) is communicated through error_codes set on the object.
+ *
+ *      It is the consumers responsibility to check the state of the
+ *      object before using its content.
+ *
+ * object_attribute.info contains a list of dl::dlis_error, which provide
+ * human-readable explanation of the problem
  */
 struct object_attribute {
     dl::ident           label = {};
@@ -411,6 +449,8 @@ struct object_attribute {
     dl::units           units = {};
     dl::value_vector    value = {};
     bool invariant            = false;
+
+    std::vector< dl::dlis_error > info;
 
     bool operator == (const object_attribute& ) const noexcept (true);
 };

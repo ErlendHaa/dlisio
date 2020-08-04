@@ -63,8 +63,7 @@ def test_invariant_attribute(tmpdir, merge_files_oneLR):
         assert attr == [False, False, True]
 
 
-@pytest.mark.future_warning_invariant_attribute
-def test_invariant_attribute_in_object(tmpdir, merge_files_oneLR):
+def test_invariant_attribute_in_object(tmpdir, merge_files_oneLR, assert_log):
     path = os.path.join(str(tmpdir), 'invariant-attribute-in-object.dlis')
     content = [
         'data/chap3/start.dlis.part',
@@ -78,6 +77,7 @@ def test_invariant_attribute_in_object(tmpdir, merge_files_oneLR):
         obj = f.object('VERY_MUCH_TESTY_SET', 'OBJECT', 1, 1)
         attr = obj.attic['DEFAULT_ATTRIBUTE']
         assert attr == [8.0]
+    assert_log("Invariant attribute")
 
 
 def test_absent_attribute(tmpdir, merge_files_oneLR):
@@ -301,8 +301,7 @@ def test_repcode_invalid_in_objects(tmpdir, merge_files_oneLR):
             f.load()
     assert "unknown representation code" in str(excinfo.value)
 
-@pytest.mark.future_warning_repcode_different_no_value
-def test_repcode_different_no_value(tmpdir, merge_files_oneLR):
+def test_repcode_different_no_value(tmpdir, merge_files_oneLR, assert_log):
     path = os.path.join(str(tmpdir), 'different-repcode-no-value.dlis')
     content = [
         'data/chap3/start.dlis.part',
@@ -315,6 +314,7 @@ def test_repcode_different_no_value(tmpdir, merge_files_oneLR):
     with dlisio.load(path) as (f, *_):
         obj = f.object('VERY_MUCH_TESTY_SET', 'OBJECT', 1, 1)
         assert obj.attic['DEFAULT_ATTRIBUTE'] == [0j, 0j]
+    assert_log("value is not explicitly set")
 
 @pytest.mark.future_test_attributes
 def test_count0_novalue(tmpdir, merge_files_oneLR):
@@ -371,8 +371,7 @@ def test_count0_different_repcode(tmpdir, merge_files_oneLR):
         assert attr == None
 
 
-@pytest.mark.future_warning_label_bit_set_in_object_attr
-def test_label_bit_set_in_attribute(tmpdir, merge_files_oneLR):
+def test_label_bit_set_in_attribute(tmpdir, merge_files_oneLR, assert_log):
     path = os.path.join(str(tmpdir), 'label_bit_set_in_attribute.dlis')
     content = [
         'data/chap3/start.dlis.part',
@@ -385,6 +384,7 @@ def test_label_bit_set_in_attribute(tmpdir, merge_files_oneLR):
     with dlisio.load(path) as (f, *tail):
         obj = f.object('VERY_MUCH_TESTY_SET', 'OBJECT', 1, 1)
         assert obj.attic['DEFAULT_ATTRIBUTE']
+    assert_log("Label bit")
 
 
 @pytest.mark.future_warning_label_bit_not_set_in_template
@@ -437,7 +437,7 @@ def test_object_name_bit_not_set_in_object(tmpdir, merge_files_oneLR):
 
 
 @pytest.mark.future_test_attributes
-def test_novalue_less_count(tmpdir, merge_files_oneLR):
+def test_novalue_less_count(tmpdir, merge_files_oneLR, assert_log):
     path = os.path.join(str(tmpdir), 'novalue-less-count.dlis')
     content = [
         'data/chap3/start.dlis.part',
@@ -450,6 +450,7 @@ def test_novalue_less_count(tmpdir, merge_files_oneLR):
     with dlisio.load(path) as (f, *tail):
         obj = f.object('VERY_MUCH_TESTY_SET', 'OBJECT', 1, 1)
         attr = obj.attic['DEFAULT_ATTRIBUTE']
+        assert_log("< original count")
         #assert attr.count == 1
         #assert attr.reprc == dlisio.core.reprc.fdoubl
         #assert attr.units == 'default attr units'
