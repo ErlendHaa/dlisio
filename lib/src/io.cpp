@@ -167,19 +167,67 @@ bool index_entry::isencrypted() const noexcept (true) {
 
 namespace {
 
-template < typename T >
-bool attr_consistent( const T& ) noexcept (true) {
-    // TODO: implement
-    // internal attributes should have both successor and predecessor
-    // first only successors, last only predecessors
-    return true;
+bool attr_consistent( const std::basic_string< std::uint8_t >& attrs) noexcept (true) {
+    /*For attributes to be considered consistent across all lrsh in a
+     * record, the following needs to hold:
+     *
+     *  1) the explicit bit must have the same value in all lrsh
+     *  2) the encryption bit must have the same value in all lrsh
+     *  3) the predecessor bit should be set in all lrsh but the first
+     *  4) the successor bit should be set in all lsrh but the last
+     *
+     *
+     *      lrsh     explicit  encrypted    predecessor     successor
+     *      0           x         y             0               1
+     *      1           x         y             1               1
+     *      ..
+     *      n - 1       x         y             1               1
+     *      n           x         y             1               0
+     *
+     */
+    if (attrs.size() <= 1) return true;
+
+    /* The logical of this lambda is not the easiest  to follow - but it
+     * accomplishes the (in)consistency checking, for all 4 attributes with a
+     * single iteration.
+     *
+     * Explicit and encryption is straight forward - are the bit different from
+     * one header to the next?
+     *
+     * For predecessor and successor we use the fact that the lambda is called
+     * with pair-wise elements like so, which means we have an easy check for
+     * all the '1' bits:
+     *
+     * n =  [attrs.begin(),     attrs.end() - 1) and
+     * n1 = [attrs.begin() + 1, attrs.end)
+     *
+     * The first predecessor and last successor, which should be 0, needs special
+     * care.
+     */
+    std::size_t pos  = 0;
+    std::size_t size = attrs.size() - 1;
+
+    auto inconsistent = [pos, size](const std::uint8_t& n,
+                                    const std::uint8_t& n1) mutable {
+        if (pos++ == 0    and n  & DLIS_SEGATTR_PREDSEG) return true;
+        if (pos   == size and n1 & DLIS_SEGATTR_SUCCSEG) return true;
+        return not ((n & DLIS_SEGATTR_EXFMTLR)==(n1 & DLIS_SEGATTR_EXFMTLR)) or
+               not ((n & DLIS_SEGATTR_ENCRYPT)==(n1 & DLIS_SEGATTR_ENCRYPT)) or
+               not (n & DLIS_SEGATTR_SUCCSEG)                                or
+               not (n1 & DLIS_SEGATTR_PREDSEG);
+    };
+
+    return std::adjacent_find(attrs.begin(),
+                              attrs.end(),
+                              inconsistent) == attrs.end();
 }
 
 template < typename T >
-bool type_consistent( const T& ) noexcept (true) {
-    // TODO: implement
-    // should be all-equal
-    return true;
+bool type_consistent( const shortvec<T>& types ) noexcept (true) {
+    return std::adjacent_find( types.begin(),
+                               types.end(),
+                               std::not_equal_to<>()
+            ) == types.end();
 }
 
 void trim_segment(std::uint8_t attrs,
