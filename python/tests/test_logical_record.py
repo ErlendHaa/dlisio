@@ -255,7 +255,7 @@ def test_repcode_invalid_datetime(tmpdir, merge_files_oneLR):
         assert "month must be" in str(excinfo.value)
 
 def test_repcode_invalid_in_template_value(tmpdir, merge_files_oneLR):
-    path = os.path.join(str(tmpdir), 'invalid-repcode.dlis')
+    path = os.path.join(str(tmpdir), 'invalid-repcode-template-value.dlis')
     content = [
         'data/chap3/start.dlis.part',
         'data/chap3/template/invalid-repcode-value.dlis.part',
@@ -270,8 +270,9 @@ def test_repcode_invalid_in_template_value(tmpdir, merge_files_oneLR):
     assert "unknown representation code" in str(excinfo.value)
 
 
-def test_repcode_invalid_in_template_no_value(tmpdir, merge_files_oneLR):
-    path = os.path.join(str(tmpdir), 'invalid-repcode-template.dlis')
+def test_repcode_invalid_in_template_no_value_fixed(tmpdir, merge_files_oneLR,
+                                                    assert_info):
+    path = os.path.join(str(tmpdir), 'invalid-repcode-template-fixed.dlis')
     content = [
         'data/chap3/start.dlis.part',
         'data/chap3/template/invalid-repcode-no-value.dlis.part',
@@ -284,15 +285,59 @@ def test_repcode_invalid_in_template_no_value(tmpdir, merge_files_oneLR):
         obj = f.object('VERY_MUCH_TESTY_SET', 'OBJECT', 1, 1)
         attr = obj.attic['INVALID']
         assert attr == [1, 2, 3, 4]
+        assert_info("Invalid representation code 0")
 
+def test_repcode_invalid_in_template_no_value_not_fixed(tmpdir,
+                                                        merge_files_oneLR,
+                                                        assert_info):
+    path = os.path.join(str(tmpdir), 'invalid-repcode-template-bad.dlis')
+    content = [
+        'data/chap3/start.dlis.part',
+        'data/chap3/template/invalid-repcode-no-value.dlis.part',
+        'data/chap3/object/object.dlis.part',
+    ]
+    merge_files_oneLR(path, content)
+    with dlisio.load(path) as (f, *_):
+        obj = f.object('VERY_MUCH_TESTY_SET', 'OBJECT', 1, 1)
+        attr = obj.attic['INVALID']
+        # note that behavior is different from the one below
+        # here we never process the attribute, hence error is not triggered
+        assert attr == None
+        assert_info("Invalid representation code 0")
 
-def test_repcode_invalid_in_objects(tmpdir, merge_files_oneLR):
+def test_repcode_invalid_in_template_no_value_empty(tmpdir, merge_files_oneLR,
+                                                    assert_log, assert_info):
+    path = os.path.join(str(tmpdir), 'invalid-repcode-template-bad-empty.dlis')
+    content = [
+        'data/chap3/start.dlis.part',
+        'data/chap3/template/invalid-repcode-no-value.dlis.part',
+        'data/chap3/object/object.dlis.part',
+        'data/chap3/objattr/empty.dlis.part',
+        'data/chap3/object/object2.dlis.part',
+        'data/chap3/objattr/all-set.dlis.part',
+    ]
+    merge_files_oneLR(path, content)
+    with dlisio.load(path) as (f, *_):
+        obj = f.object('VERY_MUCH_TESTY_SET', 'OBJECT', 1, 1)
+        with pytest.raises(RuntimeError) as excinfo:
+            # note that behavior is different from the one above
+            # by adding "empty", we process the attribute, hence trigger error
+            _ = obj.attic['INVALID']
+        assert "representation code is unknown" in str(excinfo.value)
+
+        obj = f.object('VERY_MUCH_TESTY_SET', 'OBJECT2', 1, 1)
+        attr = obj.attic['INVALID']
+        assert attr == [1, 2, 3, 4]
+        assert_info("At: T.VERY_MUCH_TESTY_SET-I.OBJECT2-O.1-C.1-A.INVALID\n"
+                    "Problem: Invalid representation code 0")
+
+def test_repcode_invalid_in_objects_value(tmpdir, merge_files_oneLR):
     path = os.path.join(str(tmpdir), 'invalid-repcode-object.dlis')
     content = [
         'data/chap3/start.dlis.part',
         'data/chap3/template/default.dlis.part',
         'data/chap3/object/object.dlis.part',
-        'data/chap3/objattr/reprcode-invalid.dlis.part',
+        'data/chap3/objattr/reprcode-invalid-value.dlis.part',
     ]
     merge_files_oneLR(path, content)
 
@@ -300,6 +345,29 @@ def test_repcode_invalid_in_objects(tmpdir, merge_files_oneLR):
         with pytest.raises(RuntimeError) as excinfo:
             f.load()
     assert "unknown representation code" in str(excinfo.value)
+
+def test_repcode_invalid_in_objects_no_value(tmpdir, merge_files_oneLR,
+                                             assert_log):
+    path = os.path.join(str(tmpdir), 'invalid-repcode-object-no-value.dlis')
+    content = [
+        'data/chap3/start.dlis.part',
+        'data/chap3/template/global-default.dlis.part',
+        'data/chap3/object/object.dlis.part',
+        'data/chap3/objattr/reprcode-invalid-no-value.dlis.part',
+        'data/chap3/object/object2.dlis.part',
+        'data/chap3/objattr/all-set.dlis.part',
+    ]
+    merge_files_oneLR(path, content)
+    with dlisio.load(path) as (f, *_):
+        obj = f.object('VERY_MUCH_TESTY_SET', 'OBJECT', 1, 1)
+        with pytest.raises(RuntimeError) as excinfo:
+            _ = obj.attic['GLOBAL_DEFAULT_ATTRIBUTE']
+        assert "representation code is unknown" in str(excinfo.value)
+        assert_log("value is not explicitly set")
+
+        obj = f.object('VERY_MUCH_TESTY_SET', 'OBJECT2', 1, 1)
+        attr = obj.attic['GLOBAL_DEFAULT_ATTRIBUTE']
+        assert attr == [1, 2, 3, 4]
 
 def test_repcode_different_no_value(tmpdir, merge_files_oneLR, assert_log):
     path = os.path.join(str(tmpdir), 'different-repcode-no-value.dlis')

@@ -733,7 +733,8 @@ void report( const std::vector< dl::dlis_error >& codes,
                 level = "info";
                 break;
             case dl::error_severity::ERROR:
-                level = "error";
+                // TODO: allow user to decide what to do with various severity
+                throw std::runtime_error(msg);
                 break;
             case dl::error_severity::WARNING:
                 level = "warning";
