@@ -19,6 +19,20 @@
 
 namespace dl {
 
+// TODO: all settings might belong to a different place
+logger* log = nullptr;
+
+logger& get_logger(){
+    if (!log) {
+       throw std::runtime_error("Logger not set");
+    }
+    return *log;
+}
+
+void set_logger(logger& l){
+    log = &l;
+}
+
 stream open(const std::string& path, std::int64_t offset) noexcept (false) {
     auto* file = std::fopen(path.c_str(), "rb");
     if (!file) {

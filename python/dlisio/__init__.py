@@ -12,6 +12,9 @@ try:
 except pkg_resources.DistributionNotFound:
     pass
 
+logger = plumbing.logger()
+core.set_logger(logger)
+
 def get_encodings():
     """Get codepages to use for decoding strings
 

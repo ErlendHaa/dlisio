@@ -1126,4 +1126,33 @@ noexcept (false) {
     return objs;
 }
 
+void report( const std::vector< dl::dlis_error >& codes,
+             const std::string& context ) noexcept (false) {
+
+    for (const auto& code : codes) {
+        const std::string msg = "\nAt: " + context + "\n" + code.message();
+        std::string level;
+
+        switch (code.severity) {
+            case dl::error_severity::DEBUG:
+                level = "debug";
+                break;
+            case dl::error_severity::INFO:
+                level = "info";
+                break;
+            case dl::error_severity::ERROR:
+                // TODO: allow user to decide what to do with various severity
+                throw std::runtime_error(msg);
+                break;
+            case dl::error_severity::WARNING:
+                level = "warning";
+                break;
+            default:
+                throw std::runtime_error("Unknown severity ");
+        }
+        // translate msg to ident to deal with possible encoding issues
+        get_logger().log(level, dl::ident(msg));
+    }
+}
+
 }

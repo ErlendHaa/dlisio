@@ -23,6 +23,7 @@ from .process import Process
 from .unknown import Unknown
 
 from .matcher import *
+from .logger import *
 from .valuetypes import *
 from .linkage import *
 from .utils import *

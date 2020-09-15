@@ -574,6 +574,20 @@ struct matcher {
     virtual ~matcher() = default;
 };
 
+struct logger {
+    virtual void log(const std::string& level, const dl::ident& msg)
+        const noexcept (false) = 0;
+
+    virtual ~logger() = default;
+};
+
+
+logger& get_logger();
+void set_logger(logger&);
+
+void report( const std::vector< dl::dlis_error >&, const std::string& )
+    noexcept (false);
+
 /* A queryable pool of metadata objects */
 class pool {
 public:

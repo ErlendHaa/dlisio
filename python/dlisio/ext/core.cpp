@@ -717,34 +717,24 @@ public:
     }
 };
 
-void report( const std::vector< dl::dlis_error >& codes,
-             const std::string& context ) noexcept (false) {
+/** trampoline helper class for dl::logger bindings */
+class Pylogger : public dl::logger {
+public:
+    /* Inherit the constructor */
+    using dl::logger::logger;
 
-    py::module logging = py::module::import("logging");
-    for (const auto& code : codes) {
-        const std::string msg = "\nAt: " + context + "\n" + code.message();
-        py::str level;
-
-        switch (code.severity) {
-            case dl::error_severity::DEBUG:
-                level = "debug";
-                break;
-            case dl::error_severity::INFO:
-                level = "info";
-                break;
-            case dl::error_severity::ERROR:
-                // TODO: allow user to decide what to do with various severity
-                throw std::runtime_error(msg);
-                break;
-            case dl::error_severity::WARNING:
-                level = "warning";
-                break;
-            default:
-                throw std::runtime_error("Unknown severity ");
-        }
-        logging.attr(level)(msg);
+    /* Trampoline (need one for each virtual function) */
+    void log(const std::string& level, const dl::ident& msg)
+    const noexcept(false) override {
+        PYBIND11_OVERLOAD_PURE(
+            void,         /* Return type */
+            dl::logger,   /* Parent class */
+            log,          /* Name of function in C++ (must match Python name) */
+            level,        /* Argument(s) */
+            msg
+        );
     }
-}
+};
 
 }
 
@@ -899,7 +889,7 @@ PYBIND11_MODULE(core, m) {
                                      .fingerprint(dl::decay( o.type )))
                                + "-A."
                                + dl::decay( attr.label );
-                report(attr.info, msg);
+                dl::report(attr.info, msg);
             }
 
             return attr.value;
@@ -1038,10 +1028,23 @@ PYBIND11_MODULE(core, m) {
         return py::make_tuple( ofs.explicits, ofs.implicits );
     });
 
-    m.def("set_encodings", set_encodings);
-    m.def("get_encodings", get_encodings);
-
     py::class_< dl::matcher, Pymatcher >( m, "matcher")
         .def(py::init<>())
     ;
+
+    py::class_< dl::logger, Pylogger >( m, "logger")
+        .def(py::init<>())
+    ;
+
+
+    /* settings */
+    m.def("set_encodings", set_encodings);
+    m.def("get_encodings", get_encodings);
+
+    m.def("set_logger", dl::set_logger);
+    m.def("get_logger", dl::get_logger);
+
+    /* settings*/
+
+
 }
