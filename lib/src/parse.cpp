@@ -724,7 +724,6 @@ bool basic_object::operator != (const basic_object& o) const noexcept (true) {
 
 
 const char* object_set::parse_template( const char* cur) noexcept (false) {
-    object_template tmp;
     const char* end = this->record.data.data() + this->record.data.size();
 
     while (true) {
@@ -733,7 +732,6 @@ const char* object_set::parse_template( const char* cur) noexcept (false) {
 
         const auto flags = parse_attribute_descriptor( cur );
         if (flags.object) {
-            swap( tmp, this->tmpl );
             return cur;
         }
 
@@ -766,11 +764,10 @@ const char* object_set::parse_template( const char* cur) noexcept (false) {
         if (flags.value) cur = elements( cur, attr );
         attr.invariant = flags.invariant;
 
-        tmp.push_back( std::move( attr ) );
+        this->tmpl.push_back( std::move( attr ) );
 
         if (cur == end){
             debug_warning("Set contains no objects");
-            swap( tmp, this->tmpl );
             return cur;
         }
     }
@@ -920,7 +917,6 @@ noexcept (false)
 const char* object_set::parse_objects(const char* cur) noexcept (false) {
 
     const char* end = this->record.data.data() + this->record.data.size();
-    object_vector objs;
     const auto default_object = defaulted_object( tmpl );
 
     while (cur != end) {
@@ -1026,10 +1022,9 @@ const char* object_set::parse_objects(const char* cur) noexcept (false) {
             current.set(attr);
         }
 
-        objs.push_back( std::move( current ) );
+        this->objs.push_back( std::move( current ) );
     }
 
-    this->objs = objs;
     return cur;
 }
 
