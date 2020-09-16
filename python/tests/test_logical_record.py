@@ -283,6 +283,10 @@ def test_repcode_invalid_in_template_no_value_fixed(tmpdir, merge_files_oneLR,
 
     with dlisio.load(path) as (f, *_):
         obj = f.object('VERY_MUCH_TESTY_SET', 'OBJECT', 1, 1)
+        assert_info("At: Message from object set SETNAME of type "
+                    "VERY_MUCH_TESTY_SET\nProblem: Problems occurred "
+                    "on processing object set.")
+
         attr = obj.attic['INVALID']
         assert attr == [1, 2, 3, 4]
         assert_info("Invalid representation code 0")
@@ -381,6 +385,10 @@ def test_repcode_different_no_value(tmpdir, merge_files_oneLR, assert_log):
 
     with dlisio.load(path) as (f, *_):
         obj = f.object('VERY_MUCH_TESTY_SET', 'OBJECT', 1, 1)
+        assert_log("At: Message from object set SETNAME of type "
+                   "VERY_MUCH_TESTY_SET\nProblem: Problems occurred "
+                   "on processing object set.")
+
         assert obj.attic['DEFAULT_ATTRIBUTE'] == [0j, 0j]
     assert_log("value is not explicitly set")
 

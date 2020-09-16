@@ -912,6 +912,49 @@ noexcept (false)
     }
 }
 
+/* Define parent error_severity by severity of children.
+ * Find worst error among the children and decrease it by level to
+ * report it on parent.
+ *
+ * Note: methods are basically the same, but unifying them requires sacrifies.
+ * Nicest solution seems to be to add common inheritance hierarchy for all the
+ * classes that can contain errors. But the way dlisio is designed means that
+ * it would be the only inherited structure out there.
+ * So in order to avoid introducing new concepts to the code, duplication is
+ * introduced instead...
+ */
+
+void max_severity( dl::error_severity& severity,
+                   const std::vector< dlis_error > infos)
+noexcept (false)
+{
+    if (infos.size()) {
+        for (const auto& info : infos) {
+            severity = std::max(severity, info.severity);
+        }
+    }
+}
+
+dl::error_severity define_parental_severity(
+    const std::vector< object_attribute > attrs) noexcept (false)
+{
+    dl::error_severity severity = dl::error_severity::DEBUG;
+    for (const auto& attr: attrs) {
+        max_severity(severity, attr.info);
+    }
+    return decrease(severity);
+}
+
+dl::error_severity define_parental_severity(
+    const std::vector< basic_object > objs) noexcept (false)
+{
+    dl::error_severity severity = dl::error_severity::DEBUG;
+    for (const auto& obj: objs) {
+        max_severity(severity, obj.info);
+    }
+    return decrease(severity);
+}
+
 }
 
 const char* object_set::parse_objects(const char* cur) noexcept (false) {
@@ -1022,7 +1065,24 @@ const char* object_set::parse_objects(const char* cur) noexcept (false) {
             current.set(attr);
         }
 
+        const auto severity = define_parental_severity(current.attributes);
+
+        if (severity >= dl::error_severity::INFO){
+            const auto msg = "Problems occurred on processing object. "
+                             "Be careful when trusting retrieved data";
+            dlis_error err { severity, msg, "", "" };
+            current.info.push_back(err);
+        }
+
         this->objs.push_back( std::move( current ) );
+    }
+
+    const auto severity = define_parental_severity(this->objs);
+    if (severity >= dl::error_severity::INFO){
+        const auto msg = "Problems occurred on processing object set. "
+                         "Be careful when trusting retrieved data";
+        dlis_error err { severity, msg, "", "" };
+        this->info.push_back(err);
     }
 
     return cur;
@@ -1078,6 +1138,11 @@ void object_set::parse() noexcept (false) {
 
 dl::object_vector& object_set::objects() noexcept (false) {
     this->parse();
+    if (this->info.size()) {
+        const auto msg = "Message from object set " + dl::decay(this->name)
+                         + " of type " + dl::decay(this->type);
+        report(this->info, msg);
+    }
     return this->objs;
 }
 
@@ -1101,6 +1166,13 @@ noexcept (false) {
         for (const auto& obj : eflr.objects()) {
             if (not m.match(dl::ident{name}, obj.object_name.id)) continue;
 
+            if (obj.info.size()) {
+                const auto msg = "Message from object " +
+                                  dl::decay(obj.object_name
+                                     .fingerprint(dl::decay( obj.type )));
+                report(obj.info, msg);
+            }
+
             objs.push_back(obj);
         }
     }
@@ -1116,6 +1188,8 @@ noexcept (false) {
         if (not m.match(dl::ident{type}, eflr.type)) continue;
 
         auto tmp = eflr.objects();
+        // do not report object errors from this method as method intention
+        // is to return object sets rather than singular objects
         objs.insert(objs.end(), tmp.begin(), tmp.end());
     }
     return objs;

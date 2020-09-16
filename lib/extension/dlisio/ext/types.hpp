@@ -511,6 +511,8 @@ struct basic_object {
     dl::obname object_name;
     dl::ident type;
     std::vector< object_attribute > attributes;
+
+    std::vector< dl::dlis_error > info;
 };
 
 /* Object set
@@ -542,6 +544,11 @@ struct basic_object {
  * encrypted records cannot be parsed by dlisio without being decrypted first.
  * As object_set does its parsing itself, it _will_ fail on construction if
  * given an encrypted record.
+ *
+ * Info:
+ *
+ * As well as attributes, every object set should have information about issues
+ * that arose during parsing.
  */
 using object_vector = std::vector< basic_object >;
 
@@ -558,6 +565,8 @@ private:
     dl::record          record;
     dl::object_vector   objs;
     dl::object_template tmpl;
+
+    std::vector< dl::dlis_error > info;
 
     void parse() noexcept (false);
     bool parsed = false;
