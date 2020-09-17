@@ -98,8 +98,7 @@ def test_absent_attribute(tmpdir, merge_files_oneLR):
             _ = obj.attic['DEFAULT_ATTRIBUTE']
 
 
-@pytest.mark.future_warning_absent_attr_in_template
-def test_absent_attribute_in_template(tmpdir, merge_files_oneLR):
+def test_absent_attribute_in_template(tmpdir, merge_files_oneLR, assert_log):
     path = os.path.join(str(tmpdir), 'absent-attribute-in-template.dlis')
     content = [
         'data/chap3/start.dlis.part',
@@ -112,6 +111,7 @@ def test_absent_attribute_in_template(tmpdir, merge_files_oneLR):
     with dlisio.load(path) as (f, *tail):
         obj = f.object('VERY_MUCH_TESTY_SET', 'OBJECT', 1, 1)
         assert obj.attic['DEFAULT_ATTRIBUTE']
+        assert_log("Absent Attribute in object template")
 
 @pytest.mark.future_test_attributes
 def test_global_default_attribute(tmpdir, merge_files_oneLR):
@@ -463,9 +463,8 @@ def test_label_bit_set_in_attribute(tmpdir, merge_files_oneLR, assert_log):
     assert_log("Label bit")
 
 
-@pytest.mark.future_warning_label_bit_not_set_in_template
 @pytest.mark.not_implemented_datetime_timezone
-def test_label_bit_not_set_in_template(tmpdir, merge_files_oneLR):
+def test_label_bit_not_set_in_template(tmpdir, merge_files_oneLR, assert_log):
     path = os.path.join(str(tmpdir), 'label-bit-not-set-in-template.dlis')
     content = [
         'data/chap3/start.dlis.part',
@@ -479,10 +478,10 @@ def test_label_bit_not_set_in_template(tmpdir, merge_files_oneLR):
         attr = obj.attic['NEW_ATTRIBUTE']
         dt = datetime(2033, 4, 19, 20, 39, 58, 103000)
         assert attr == [dt]
+        assert_log("Label not set in template")
 
 
-@pytest.mark.future_warning_set_type_bit_not_set
-def test_set_type_bit_not_set_in_set(tmpdir, merge_files_oneLR):
+def test_set_type_bit_not_set_in_set(tmpdir, merge_files_oneLR, assert_log):
     path = os.path.join(str(tmpdir), 'set-type-not-set.dlis')
     content = [
         'data/chap3/sul.dlis.part',
@@ -495,10 +494,12 @@ def test_set_type_bit_not_set_in_set(tmpdir, merge_files_oneLR):
     with dlisio.load(path) as (f, *tail):
         obj = f.object('VERY_MUCH_TESTY_SET', 'OBJECT', 1, 1)
         assert obj.attic['DEFAULT_ATTRIBUTE']
+        assert_log("At: Message from object set  of type VERY_MUCH_TESTY_SET\n"
+                   "Problem: SET:type not set.")
 
 
-@pytest.mark.future_warning_object_name_bit_not_set
-def test_object_name_bit_not_set_in_object(tmpdir, merge_files_oneLR):
+def test_object_name_bit_not_set_in_object(tmpdir, merge_files_oneLR,
+                                           assert_log):
     path = os.path.join(str(tmpdir), 'no-object-name-bit.dlis')
     content = [
         'data/chap3/start.dlis.part',
@@ -510,6 +511,9 @@ def test_object_name_bit_not_set_in_object(tmpdir, merge_files_oneLR):
     with dlisio.load(path) as (f, *tail):
         obj = f.object('VERY_MUCH_TESTY_SET', 'OBJECT', 1, 1)
         assert obj.attic['DEFAULT_ATTRIBUTE']
+        assert_log("At: Message from object "
+                   "T.VERY_MUCH_TESTY_SET-I.OBJECT-O.1-C.1\n"
+                   "Problem: OBJECT:name was not set.")
 
 
 @pytest.mark.future_test_attributes
@@ -699,7 +703,8 @@ def test_cut_before_template(tmpdir, merge_files_oneLR):
     assert "unexpected end-of-record" in str(excinfo.value)
 
 
-def test_cut_before_object(tmpdir, merge_files_oneLR):
+def test_cut_before_object(tmpdir, merge_files_oneLR, assert_debug):
+    # otherwise known as "set with no objects" test
     path = os.path.join(str(tmpdir), 'cut-before-object.dlis')
     content = [
         'data/chap3/start.dlis.part',
@@ -709,6 +714,7 @@ def test_cut_before_object(tmpdir, merge_files_oneLR):
     with dlisio.load(path) as (f,):
         objects = f.match('.*', '.*')
         assert len(objects) == 0
+        assert_debug("Set contains no objects")
 
 
 @pytest.mark.skip(reason="result inconsistent")

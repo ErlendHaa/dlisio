@@ -12,14 +12,6 @@
 
 namespace {
 
-void user_warning( const std::string& ) noexcept (true) {
-    // TODO:
-}
-
-void debug_warning( const std::string& ) noexcept (true) {
-    // TODO:
-}
-
 struct set_descriptor {
     int role;
     bool type;
@@ -735,22 +727,29 @@ const char* object_set::parse_template( const char* cur) noexcept (false) {
         cur += DLIS_DESCRIPTOR_SIZE;
 
         if (flags.absent) {
-            user_warning( "ABSATR in object template - skipping" );
+            dlis_error err {
+                dl::error_severity::WARNING,
+                "Absent Attribute in object template",
+                "3.2.2.2 Component Usage: A Template consists of a collection "
+                    "of Attribute Components and/or Invariant Attribute "
+                    "Components, mixed in any fashion.",
+                "Skipped"
+            };
+            this->info.push_back(err);
             continue;
         }
 
         object_attribute attr;
 
         if (!flags.label) {
-            /*
-             * 3.2.2.2 Component usage
-             *  All Components in the Template must have distinct, non-null
-             *  Labels.
-             *
-             *  Assume that if this isn't set properly it's a corrupted
-             *  descriptor, so just try to read the label anyway
-             */
-            user_warning( "Label not set, but must be non-null" );
+            dlis_error err {
+                dl::error_severity::WARNING,
+                "Label not set in template",
+                "3.2.2.2 Component Usage: All Components in the Template must "
+                    "have distinct, non-null Labels.",
+                "Assumed descriptor corrupted, attempt to read label anyway"
+            };
+            this->info.push_back(err);
         }
 
                          cur = cast( cur, attr.label );
@@ -763,7 +762,13 @@ const char* object_set::parse_template( const char* cur) noexcept (false) {
         this->tmpl.push_back( std::move( attr ) );
 
         if (cur == end){
-            debug_warning("Set contains no objects");
+            dlis_error err {
+                dl::error_severity::DEBUG,
+                "Set contains no objects",
+                "3.2.2.2 Component Usage: A Set consists of one or more Objects",
+                ""
+            };
+            this->info.push_back(err);
             return cur;
         }
     }
@@ -968,8 +973,15 @@ const char* object_set::parse_objects(const char* cur) noexcept (false) {
         auto current = default_object;
         current.type = type;
 
-        if (object_flags.name) {
-            user_warning( "OBJECT:name was not set, but must be non-null" );
+        if (!object_flags.name) {
+            dlis_error err {
+                dl::error_severity::WARNING,
+                "OBJECT:name was not set",
+                "3.2.2.1 Component Descriptor: That is, every Object has "
+                    "a non-null Name",
+                "Assumed descriptor corrupted, attempt to read name anyway"
+            };
+            current.info.push_back(err);
         }
 
         cur = cast( cur, current.object_name );
@@ -1112,12 +1124,15 @@ const char* object_set::parse_set_component(const char* cur) noexcept (false) {
     dl::ident tmp_name;
 
     if (!flags.type) {
-    /*
-        * 3.2.2.2 Component usage
-        *  The Set Component contains the Set Type, which is not optional
-        *  and must not be null, and the Set Name, which is optional.
-        */
-        user_warning( "SET:type not set, but must be non-null." );
+        dlis_error err {
+            dl::error_severity::WARNING,
+            "SET:type not set",
+            "3.2.2.1 Component Descriptor: A Set’s Type Characteristic must "
+                "be non-null and must always be explicitly present in "
+                "the Set Component",
+            "Assumed descriptor corrupted, attempt to read type anyway"
+        };
+        this->info.push_back(err);
     }
 
                     cur = cast( cur, tmp_type );
