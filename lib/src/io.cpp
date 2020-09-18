@@ -33,6 +33,18 @@ void set_logger(logger& l){
     log = &l;
 }
 
+
+error_severity escape_level = error_severity::WARNING;
+
+error_severity get_escape_level() noexcept(true) {
+    return escape_level;
+}
+
+void set_escape_level(const error_severity s) noexcept(true) {
+    escape_level = s;
+}
+
+
 stream open(const std::string& path, std::int64_t offset) noexcept (false) {
     auto* file = std::fopen(path.c_str(), "rb");
     if (!file) {

@@ -106,6 +106,41 @@ def set_encodings(encodings):
     """
     core.set_encodings(list(encodings))
 
+"""Internal use"""
+severity_map = {
+    'debug'   : core.error_severity.debug,
+    'info'    : core.error_severity.info,
+    'warning' : core.error_severity.warning,
+    'error'   : core.error_severity.error
+}
+
+def get_escape_level():
+    severity = core.get_escape_level()
+    return list(severity_map.keys())[
+        list(severity_map.values()).index(severity)]
+
+def set_escape_level(severity):
+    """
+    TODO.
+
+    Users can throw on warnings if they do not trust dlisio default behavior.
+    Users can escape errors if they want to read as much data as possible.
+    Note: if user decides to accept errors, they must be aware that some data
+    that they receive will be spoiled.
+
+    Parameters
+    ----------
+    severity : str
+        Accepted options are: debug, info, warning, error
+    """
+    severity = severity.lower()
+
+    if severity in severity_map:
+        core.set_escape_level(severity_map[severity])
+    else:
+        msg = "Invalid severity argument '{}'. Possible options: {}"
+        raise KeyError(msg.format(severity, severity_map.keys()))
+
 class dlis(object):
     """Logical file
 

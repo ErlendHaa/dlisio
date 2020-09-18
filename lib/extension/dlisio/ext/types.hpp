@@ -80,6 +80,9 @@ enum class error_severity {
  */
 error_severity decrease(error_severity s) noexcept (true);
 
+error_severity get_escape_level() noexcept (true);
+void set_escape_level(const error_severity) noexcept (true);
+
 struct dlis_error {
     error_severity severity;
     std::string problem;

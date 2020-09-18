@@ -1257,6 +1257,9 @@ void report( const std::vector< dl::dlis_error >& codes,
         const std::string msg = "\nAt: " + context + "\n" + code.message();
         std::string level;
 
+        if (dl::get_escape_level() < code.severity)
+            throw std::runtime_error(msg);
+
         switch (code.severity) {
             case dl::error_severity::DEBUG:
                 level = "debug";
@@ -1265,8 +1268,7 @@ void report( const std::vector< dl::dlis_error >& codes,
                 level = "info";
                 break;
             case dl::error_severity::ERROR:
-                // TODO: allow user to decide what to do with various severity
-                throw std::runtime_error(msg);
+                level = "error";
                 break;
             case dl::error_severity::WARNING:
                 level = "warning";

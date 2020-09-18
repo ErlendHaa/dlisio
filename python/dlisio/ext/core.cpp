@@ -1036,6 +1036,12 @@ PYBIND11_MODULE(core, m) {
         .def(py::init<>())
     ;
 
+    py::enum_< dl::error_severity >( m, "error_severity" )
+        .value( "debug",   dl::error_severity::DEBUG )
+        .value( "info",    dl::error_severity::INFO )
+        .value( "warning", dl::error_severity::WARNING )
+        .value( "error",   dl::error_severity::ERROR )
+    ;
 
     /* settings */
     m.def("set_encodings", set_encodings);
@@ -1043,6 +1049,9 @@ PYBIND11_MODULE(core, m) {
 
     m.def("set_logger", dl::set_logger);
     m.def("get_logger", dl::get_logger);
+
+    m.def("set_escape_level", dl::set_escape_level);
+    m.def("get_escape_level", dl::get_escape_level);
 
     /* settings*/
 
