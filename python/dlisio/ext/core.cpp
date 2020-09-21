@@ -1001,9 +1001,20 @@ PYBIND11_MODULE(core, m) {
         std::vector< dl::record > recs;
         recs.reserve( tells.size() );
         for (auto tell : tells) {
-            auto rec = dl::extract(s, tell);
-            if (rec.data.size() > 0) {
-                recs.push_back( std::move( rec ) );
+            try {
+                auto rec = dl::extract(s, tell);
+                if (rec.data.size() > 0) {
+                    recs.push_back( std::move( rec ) );
+                }
+            } catch (const std::exception& e) {
+                dl::dlis_error err {
+                    dl::error_severity::ERROR,
+                    e.what(),
+                    "",
+                    "Record is not extracted"
+                };
+                const auto msg = "extract: error on processing logical record";
+                dl::report({err}, msg);
             }
         }
         return recs;
