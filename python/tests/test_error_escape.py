@@ -5,6 +5,7 @@ Testing "error escape" feature on various levels of representation
 
 import pytest
 import os
+import numpy as np
 
 import dlisio
 
@@ -75,6 +76,14 @@ def test_findfdata_bad_obname(assert_error):
     with dlisio.load(path) as (f, *_):
         assert_error("Error on reading fdata obname")
         assert "T.FRAME-I.DLIS-FRAME-O.3-C.1" in f.fdata_index
+
+def test_curves_broken_fmt(assert_error):
+    path = 'data/chap4-7/iflr/broken-fmt.dlis'
+    with dlisio.load(path) as (f, *_):
+        frame = f.object('FRAME', 'FRAME-REPRCODE', 10, 0)
+        curves = frame.curves()
+        assert_error("fmtstr would read past end")
+        assert np.array_equal(curves['FRAMENO'], np.array([1, 3]))
 
 # TODO: test_parse_exeptions
 

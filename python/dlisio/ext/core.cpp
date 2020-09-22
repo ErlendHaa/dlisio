@@ -655,44 +655,63 @@ noexcept (false) {
     assert(std::string(pre_fmt) == "");
     assert(std::string(post_fmt) == "");
 
+    auto record_dst = dst;
+
     int frames = 0;
     for (auto i : indices) {
-        /* get record */
-        auto record = dl::extract(file, i);
+        record_dst = dst;
 
-        if (record.isencrypted()) {
-            throw dl::not_implemented("encrypted FDATA record");
-        }
+        try {
+            /* get record */
+            auto record = dl::extract(file, i);
 
-        const auto* ptr = record.data.data();
-        const auto* end = ptr + record.data.size();
-
-        /* read fingerprint */
-        std::int32_t origin;
-        std::uint8_t copy;
-        ptr = dlis_obname(ptr, &origin, &copy, nullptr, nullptr);
-
-        /* get frame number and slots */
-        while (ptr < end) {
-            if (frames == allocated_rows) {
-                resize(frames * 2);
-                dst += (frames * itemsize);
+            if (record.isencrypted()) {
+                throw dl::not_implemented("encrypted FDATA record");
             }
 
-            int src_skip, dst_skip;
-            dlis_packflen(pre_fmt, ptr, &src_skip, nullptr);
-            assert_overflow(ptr, end, src_skip);
-            ptr += src_skip;
+            const auto* ptr = record.data.data();
+            const auto* end = ptr + record.data.size();
 
-            for (auto* f = fmt; *f; ++f) {
-                read_fdata_curve(f, ptr, end, dst);
+            /* read fingerprint */
+            std::int32_t origin;
+            std::uint8_t copy;
+            ptr = dlis_obname(ptr, &origin, &copy, nullptr, nullptr);
+
+            /* get frame number and slots */
+            while (ptr < end) {
+                if (frames == allocated_rows) {
+                    resize(frames * 2);
+                    dst += (frames * itemsize);
+                }
+
+                int src_skip, dst_skip;
+                dlis_packflen(pre_fmt, ptr, &src_skip, nullptr);
+                assert_overflow(ptr, end, src_skip);
+                ptr += src_skip;
+
+                for (auto* f = fmt; *f; ++f) {
+                    read_fdata_curve(f, ptr, end, dst);
+                }
+
+                dlis_packflen(post_fmt, ptr, &src_skip, nullptr);
+                assert_overflow(ptr, end, src_skip);
+                ptr += src_skip;
+
+                ++frames;
             }
+        } catch(const std::exception& e) {
+            dl::dlis_error err {
+                dl::error_severity::ERROR,
+                e.what(),
+                "",
+                "Record is skipped"
+            };
+            const auto msg = "curves: error on reading fdata";
+            dl::report({err}, msg);
 
-            dlis_packflen(post_fmt, ptr, &src_skip, nullptr);
-            assert_overflow(ptr, end, src_skip);
-            ptr += src_skip;
-
-            ++frames;
+            // we update the buffer as we go. Hence if error happened we need to
+            // go back and start rewriting updated data
+            dst = record_dst;
         }
     }
 
