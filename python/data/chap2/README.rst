@@ -26,6 +26,9 @@ attrs-inconsistency-type-pred.dlis  First implicit lrs expects successor, but
                                     what follows is an explicit lrs with no
                                     predecessor
 
+fileheaders-inconsistency.dlis      First implicit lrs expects successor, but
+                                    what follows is a new Logical File
+
 incomplete-sul.dlis                 Incomplete storage unit label
 
 incomplete-vr.dlis                  Incomplete visible record
@@ -67,8 +70,11 @@ truncated-on-full-lr.dlis           File is truncated on a complete LR, but not
 truncated-in-second-lr.dlis         Mismatch between visible record length and
                                     remaining bytes. Second LR truncated
 
-truncated-on-lrs.dlis               LRS expects successor, but none comes. File
-                                    is truncated
+truncated-on-lrs-in-vr.dlis         LRS expects successor, but none comes. File
+                                    is truncated. VR is also truncated
+
+truncated-on-lrs-vr-over.dlis       LRS expects successor, but none comes. File
+                                    is truncated. LRS and VR ends align
 
 wrong-lrhs.dlis                     Mismatch between logical record segment
                                     length and remaining bytes in visible
