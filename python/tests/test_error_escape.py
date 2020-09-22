@@ -27,7 +27,41 @@ def test_set_invalid_escape_level():
 
 # TODO: test mix (do not fail on truncation, but fail on bad attribute access)
 
-# TODO: test_truncated
+def test_unescapable_notdlis(assert_error):
+    path = 'data/chap2/nondlis.txt'
+    with pytest.raises(RuntimeError) as excinfo:
+        _ = dlisio.load(path)
+    assert "could not find visible record envelope" in str(excinfo.value)
+
+def test_truncated_in_data(assert_error):
+    path = 'data/chap2/truncated-in-second-lr.dlis'
+    with dlisio.load(path) as (f, *_):
+        assert_error("findoffsets: file truncated")
+        assert len(f.channels) == 1
+
+def test_truncated_in_lrsh(assert_error):
+    path = 'data/chap2/truncated-in-lrsh.dlis'
+    with dlisio.load(path) as (f, *_):
+        assert_error("unexpected EOF when reading record")
+        assert len(f.channels) == 1
+
+def test_truncated_on_lrs_vr_over(assert_error):
+    path = 'data/chap2/truncated-on-lrs-vr-over.dlis'
+    with dlisio.load(path) as (f, *_):
+        assert_error("last logical record segment expects successor")
+        assert len(f.channels) == 0
+
+def test_zeroed_before_lrs(assert_error):
+    path = 'data/chap2/zeroed-in-1st-lr.dlis'
+    with dlisio.load(path) as (f, *_):
+        assert_error("Too short logical record")
+        assert len(f.channels) == 0
+
+def test_zeroed_before_vr(assert_error):
+    path = 'data/chap2/zeroed-in-2nd-lr.dlis'
+    with dlisio.load(path) as (f, *_):
+        assert_error("Incorrect format version")
+        assert len(f.channels) == 1
 
 # TODO: test_extract
 

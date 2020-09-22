@@ -58,6 +58,7 @@ private:
 struct stream_offsets {
     std::vector< long long > explicits;
     std::vector< long long > implicits;
+    std::vector< long long > broken;
 };
 
 stream open(const std::string&, std::int64_t) noexcept (false);

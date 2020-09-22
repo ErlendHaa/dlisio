@@ -665,7 +665,7 @@ def load(path):
             if tapemarks: stream = core.open_tif(stream)
             stream = core.open_rp66(stream)
 
-            explicits, implicits = core.findoffsets(stream)
+            explicits, implicits, broken = core.findoffsets(stream)
             hint = rewind(stream.absolute_tell, tapemarks)
 
             recs  = core.extract(stream, explicits)
@@ -676,8 +676,14 @@ def load(path):
             lf = dlis(stream, pool, fdata, sul)
             lfs.append(lf)
 
+            if len(broken):
+                # do not attempt to recover or read more logical files
+                # if the error happened in findoffsets
+                # return all logical files we were able to process until now
+                break
+
+            stream = core.open(path)
             try:
-                stream = core.open(path)
                 offset = core.findvrl(stream, hint)
             except RuntimeError:
                 if stream.eof():

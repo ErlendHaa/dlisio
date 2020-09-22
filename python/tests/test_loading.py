@@ -76,6 +76,9 @@ def test_filehandles_closed_when_load_fails(tmpdir):
     shutil.copyfile('data/chap4-7/many-logical-files-error-in-last.dlis',
                     many_logical)
 
+    offsets_error_escape = str(tmpdir.join('error_escape_zeroed'))
+    shutil.copyfile('data/chap2/zeroed-in-1st-lr.dlis', offsets_error_escape)
+
     # dlisio.load fails at findvrl
     with pytest.raises(RuntimeError):
         _ =  dlisio.load(findvrl)
@@ -96,12 +99,21 @@ def test_filehandles_closed_when_load_fails(tmpdir):
     with pytest.raises(RuntimeError):
         _ =  dlisio.load(many_logical)
 
+    # error escape happens in 1st LF, but is escaped
+    default_escape_level = dlisio.get_escape_level()
+    try:
+        dlisio.set_escape_level("error")
+        _ = dlisio.load(offsets_error_escape)
+    finally:
+        dlisio.set_escape_level(default_escape_level)
+
     # If dlisio has properly closed the files, removing them should work.
     os.remove(findvrl)
     os.remove(offsets)
     os.remove(extract)
     os.remove(fdata)
     os.remove(many_logical)
+    os.remove(offsets_error_escape)
 
 def test_context_manager():
     path = 'data/chap4-7/many-logical-files.dlis'

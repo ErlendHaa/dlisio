@@ -45,7 +45,7 @@ def test_lrs_atributes_inconsistency():
 def test_fileheaders_inconsistency():
     with pytest.raises(RuntimeError) as excinfo:
         _ = dlisio.load('data/chap2/fileheaders-inconsistency.dlis')
-    assert "previous logical record expects successor" in str(excinfo.value)
+    assert "logical record segment expects successor" in str(excinfo.value)
 
 def test_padbytes_as_large_as_record():
     path = 'data/chap2/padbytes-large-as-record.dlis'
@@ -119,7 +119,7 @@ def test_truncated_on_lrs_in_vr():
 def test_truncated_on_lrs_vr_over():
     with pytest.raises(RuntimeError) as excinfo:
         _ = dlisio.load('data/chap2/truncated-on-lrs-vr-over.dlis')
-    assert "last logical record expects successor" in str(excinfo.value)
+    assert "last logical record segment expects successor" in str(excinfo.value)
 
 def test_truncated_on_full_lr():
     with pytest.raises(RuntimeError) as excinfo:
