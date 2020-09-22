@@ -70,6 +70,12 @@ def test_extract_broken_padbytes(assert_error):
         valid_obj = f.object("VALID-SET", "VALID-OBJ", 10, 0)
         assert valid_obj
 
+def test_findfdata_bad_obname(assert_error):
+    path = 'data/chap3/implicit/fdata-broken-obname.dlis'
+    with dlisio.load(path) as (f, *_):
+        assert_error("Error on reading fdata obname")
+        assert "T.FRAME-I.DLIS-FRAME-O.3-C.1" in f.fdata_index
+
 # TODO: test_parse_exeptions
 
 def test_parse_error_escaped(tmpdir, merge_files_oneLR,

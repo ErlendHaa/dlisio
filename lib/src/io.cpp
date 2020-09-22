@@ -542,27 +542,38 @@ noexcept (false) {
     rec.data.reserve( OBNAME_SIZE_MAX );
 
     for (auto tell : tells) {
-        extract(file, tell, OBNAME_SIZE_MAX, rec);
-        if (rec.isencrypted()) continue;
-        if (rec.type != 0) continue;
-        if (rec.data.size() == 0) continue;
+        try {
+            extract(file, tell, OBNAME_SIZE_MAX, rec);
+            if (rec.isencrypted()) continue;
+            if (rec.type != 0) continue;
+            if (rec.data.size() == 0) continue;
 
-        int32_t origin;
-        uint8_t copy;
-        int32_t idlen;
-        char id[ 256 ];
-        const char* cur = dlis_obname(rec.data.data(), &origin, &copy, &idlen, id);
+            int32_t origin;
+            uint8_t copy;
+            int32_t idlen;
+            char id[ 256 ];
+            const char* cur = dlis_obname(rec.data.data(), &origin, &copy, &idlen, id);
 
-        std::size_t obname_size = cur - rec.data.data();
-        if (obname_size > rec.data.size()) {
-            auto msg = "File corrupted. Error on reading fdata obname";
-            throw std::runtime_error(msg);
+            std::size_t obname_size = cur - rec.data.data();
+            if (obname_size > rec.data.size()) {
+                auto msg = "File corrupted. Error on reading fdata obname";
+                throw std::runtime_error(msg);
+            }
+            dl::obname tmp{ dl::origin{ origin },
+                            dl::ushort{ copy },
+                            dl::ident{ std::string{ id, id + idlen } } };
+
+            xs[tmp.fingerprint("FRAME")].push_back( tell );
+        } catch (const std::exception& e) {
+            dlis_error err {
+                dl::error_severity::ERROR,
+                e.what(),
+                "",
+                "Skipped the record"
+            };
+            const auto msg = "findfdata: error on processing the record";
+            report({err}, msg);
         }
-        dl::obname tmp{ dl::origin{ origin },
-                        dl::ushort{ copy },
-                        dl::ident{ std::string{ id, id + idlen } } };
-
-        xs[tmp.fingerprint("FRAME")].push_back( tell );
     }
     return xs;
 }
