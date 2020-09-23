@@ -47,11 +47,12 @@ def test_fileheaders_inconsistency():
         _ = dlisio.load('data/chap2/fileheaders-inconsistency.dlis')
     assert "logical record segment expects successor" in str(excinfo.value)
 
-def test_padbytes_as_large_as_record():
+def test_padbytes_as_large_as_record(assert_info):
     path = 'data/chap2/padbytes-large-as-record.dlis'
     with dlisio.load(path) as (f,):
         assert len(f.match('.*', '.*')) == 0
         assert len(f.fdata_index) == 0
+        assert_info("padbytes size = logical record segment length")
 
 def test_padbytes_as_large_as_segment_explicit():
     path = 'data/chap2/padbytes-large-as-seg-explict.dlis'

@@ -583,6 +583,12 @@ error_severity decrease(error_severity s)  noexcept (true)
 }
 
 std::string dlis_error::message() const noexcept (true) {
+    /*
+     * TODO: format. Without formatting nested errors look bad
+     * note: regex::replace version should work from gcc 4.9
+     * const std::string formatted_problem = std::regex_replace(
+     * this->problem, std::regex("\n"), "\n  ");
+     */
     const std::string problem = "Problem: " + this->problem + "." ;
     std::string spec = "";
     if (!this->specification.empty()) {

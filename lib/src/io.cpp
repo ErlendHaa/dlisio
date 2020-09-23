@@ -214,22 +214,26 @@ noexcept (false) {
             segment.resize(segment.size() - trim);
             return;
 
-        case DLIS_BAD_SIZE:
+        case DLIS_BAD_SIZE: {
             if (trim - segment_size != DLIS_LRSH_SIZE) {
                 const auto msg =
                     "bad segment trim: padbytes (which is {}) "
                     ">= segment.size() (which is {})";
                 throw std::runtime_error(fmt::format(msg, trim, segment_size));
-            }
 
-            /*
-             * padbytes included the segment header. It's larger than
-             * the segment body, but only because it also counts the
-             * header. accept that, pretend the body was never added,
-             * and move on.
-             */
+            }
+            dlis_error err{
+                dl::error_severity::INFO,
+                "padbytes size = logical record segment length",
+                "2.2.2.1 Logical Record Segment Header (LRSH): Pad Count "
+                    "is a single byte... that contains a count of Pad "
+                    "Bytes present in the LRST",
+                "skip the record altogether"};
+            report({err}, "trim_segment: bad padbytes");
+
             segment.resize(segment.size() - segment_size);
             return;
+        }
 
         default:
             throw std::invalid_argument("dlis_trim_record_segment");
