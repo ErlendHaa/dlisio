@@ -85,24 +85,30 @@ def test_curves_broken_fmt(assert_error):
         assert_error("fmtstr would read past end")
         assert np.array_equal(curves['FRAMENO'], np.array([1, 3]))
 
-# TODO: test_parse_exeptions
-
-def test_parse_error_escaped(tmpdir, merge_files_oneLR,
-                                         assert_error):
-    path = os.path.join(str(tmpdir), 'error-on-attribute-access.dlis')
+def test_parse_unparsable_record(tmpdir, merge_files_oneLR, assert_error):
+    path = os.path.join(str(tmpdir), 'unparsable.dlis')
     content = [
         'data/chap3/start.dlis.part',
         'data/chap3/template/invalid-repcode-no-value.dlis.part',
         'data/chap3/object/object.dlis.part',
         'data/chap3/objattr/empty.dlis.part',
+        'data/chap3/object/object2.dlis.part',
+        # here must go anything that will be considered unrecoverable
+        'data/chap3/objattr/reprcode-invalid-value.dlis.part'
     ]
     merge_files_oneLR(path, content)
 
     with dlisio.load(path) as (f, *_):
         obj = f.object('VERY_MUCH_TESTY_SET', 'OBJECT', 1, 1)
+        assert_error("parse interrupted")
+
         # value is unclear and shouldn't be trusted
         _ = obj.attic['INVALID']
         assert_error("representation code is unknown")
+
+        with pytest.raises(ValueError) as excinfo:
+            _ = f.object('VERY_MUCH_TESTY_SET', 'OBJECT2', 1, 1)
+        assert "not found" in str(excinfo.value)
 
 def test_parse_warning_errored(tmpdir, merge_files_oneLR):
     path = os.path.join(str(tmpdir), 'replacement-set.dlis')

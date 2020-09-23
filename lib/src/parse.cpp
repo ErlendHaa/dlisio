@@ -1175,19 +1175,46 @@ const char* object_set::parse_set_component(const char* cur) noexcept (false) {
 }
 
 object_set::object_set(dl::record rec) noexcept (false)  {
-        this->record = std::move(rec);
+    this->record = std::move(rec);
+    try {
         parse_set_component(this->record.data.data());
+    } catch(const std::exception& e) {
+        dlis_error err {
+            dl::error_severity::ERROR,
+            e.what(),
+            "",
+            "parsing set components interrupted"
+        };
+        report({err}, "object set creation: error on parsing types");
+    }
 }
 
 void object_set::parse() noexcept (false) {
     if (this->parsed) return;
 
     const char* cur = this->record.data.data();
-    /* As cursor value is not stored, read data again to get the position */
-    cur = parse_set_component(cur);
-    cur = parse_template(cur);
-    cur = parse_objects(cur);
 
+    try {
+        /* As cursor value is not stored, read data again to get the position */
+        cur = parse_set_component(cur);
+        cur = parse_template(cur);
+        cur = parse_objects(cur);
+    } catch (const std::exception& e) {
+        dlis_error err {
+            dl::error_severity::ERROR,
+            e.what(),
+            "",
+            "parse interrupted"
+        };
+        this->info.push_back(err);
+        const auto object_set_id = "object set " + dl::decay(this->name) +
+                                   " of type " + dl::decay(this->type);
+        report({err}, object_set_id + " parse: error on parsing");
+    }
+    /* If set is parsed in default mode, exception will be thrown and set won't
+     * be considered parsed. If set is parsed after that in error-escape mode,
+     * parsing will be locked, but error will get stored on object set anyway.
+     */
     this->parsed = true;
 }
 
