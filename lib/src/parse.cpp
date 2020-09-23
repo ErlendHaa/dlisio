@@ -847,14 +847,22 @@ noexcept (false)
         }
 
         /*
-         * count is larger, so insert default values, maybe? for now, throw
-         * exception and consider what to do when a file actually uses this
-         * behaviour
+         * count is larger, which makes little sense. Likely file is already
+         * spoiled, but mark attribute as errored and attempt to continue
          */
-        const auto msg = "object attribute without no explicit value, but "
-                         "count (which is {}) > size (which is {})"
-        ;
-        throw dl::not_implemented(fmt::format(msg, count, size));
+        const auto msg = "Default value is not overridden, but new count "
+                         "is. count (which is {}) > original count (which "
+                         "is {})";
+
+        dlis_error err {
+            dl::error_severity::ERROR,
+            fmt::format(msg, count, size),
+            "3.2.2.1 Component Descriptor: The number of Elements that "
+                "make up the Value is specified by the Count "
+                "Characteristic.",
+            "values is left as default. Continue processing"
+        };
+        attr.info.push_back(err);
     }
 
     /*
