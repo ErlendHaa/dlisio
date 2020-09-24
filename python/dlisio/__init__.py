@@ -115,23 +115,121 @@ severity_map = {
 }
 
 def get_escape_level():
+    """Get currently set escape level
+
+    Returns
+    -------
+    escape_level : str
+
+    See also
+    --------
+    set_escape_level
+    """
     severity = core.get_escape_level()
     return list(severity_map.keys())[
         list(severity_map.values()).index(severity)]
 
 def set_escape_level(severity):
-    """
-    TODO.
+    """ Sets error escape level
 
-    Users can throw on warnings if they do not trust dlisio default behavior.
-    Users can escape errors if they want to read as much data as possible.
-    Note: if user decides to accept errors, they must be aware that some data
-    that they receive will be spoiled.
+    Many .dlis files happen to be not compliant with specification or simply
+    broken. This setting gives user some control over handling of such files.
+
+    For example:
+
+    * Users can throw on warnings if they find dlisio default assumptions too
+      loose.
+    * Users can escape errors if they want to read as much data as possible.
+
+    There are two more things worth mentioning.
+
+    First, setting does not cover all the warnings and exceptions.
+    It is intended to be used only on "processing" level, but not on
+    "presentation" level. Thus it would be applicable, for example
+
+    * on data load and parsing in :py:func:`load()`, :py:func:`dlis.load()`
+      and :py:func:`dlisio.plumbing.Frame.curves()`
+    * on object access :py:func:`dlis.match()`, :py:func:`dlis.object()`
+    * on attribute access :py:attr:`dlisio.plumbing.Frame.description`
+
+    User still gets default behavior on other occasions, like warnings on
+    missing SUL or exceptions in :py:func:`dlisio.plumbing.Frame.curves()` in
+    case of invalid channel/frame relationships. Some of these might be get
+    implemented in the future.
+
+    Second, setting doesn't redefine issues categories, it only changes the
+    default behavior.
+    By default dlisio attempts to classify information in the following way:
+
+    * *debug*: everything is ok
+    * *info*: minor specification issue
+    * *warning*: major specification issue, assumption taken
+    * *error*: something is wrong
+
+    By default, escape level is set to *warning*. Meaning that infos and
+    warnings will be logged, and errors will be thrown.
+
+    By setting escape level to *debug* or *info*, user can strengthen the
+    behavior and throw even on minor violations.
+
+    By setting escape level to *error*, user relaxes the behavior, thus allowing
+    errors escape.
 
     Parameters
     ----------
     severity : str
+        Highest severity level which will be logged, not thrown.
         Accepted options are: debug, info, warning, error
+
+    Warnings
+    --------
+    Escaping errors is a good solution when user needs to read as much data as
+    possible, for example, to have a general overview over the file. However
+    user must be careful when using this mode during close inspection.
+    If user decides to accept errors, they must be aware that some returned data
+    will be spoiled. Most likely it will be data which is stored in the file
+    near the failure.
+
+    Warnings
+    --------
+    If user decides to accept errors, dlisio will return all the data that it
+    was able to process. But a lot of data after the failure may be skipped as
+    usually errors are not recoverable.
+
+    Notes
+    -----
+    Users do not have direct access to issues found during processing. They are
+    reported on user's behalf in logger or directly thrown as an exception.
+
+    See also
+    --------
+    get_escape_level : currently set escape level
+
+    Examples
+    --------
+    Process a file to have a general overview:
+
+    >>> dlisio.set_escape_level("warning")
+    ... try:
+    ...    res = process_file(path)
+    ...    store_results(path, res, broken=False)
+    ... except:
+    ...    dlisio.set_escape_level("error")
+    ...    # will throw anyway if escape for error is not implemented
+    ...    res = process_file(path)
+    ...    store_results(path, res, broken=True)
+
+    Inspect a file by loading as much data as possible, but then tough up
+    restrictions to throw on everything dlisio defines as warnings or errors:
+
+    >>> dlisio.set_escape_level("error")
+    ... with dlisio.load(path) as b:
+    ...     for f in b:
+    ...         dlisio.set_escape_level("error")
+    ...         f.load()
+    ...         dlisio.set_escape_level("info")
+    ...         _ = f.match('RSP.*')
+
     """
     severity = severity.lower()
 

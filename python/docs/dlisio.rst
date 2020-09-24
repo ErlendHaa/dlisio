@@ -1,7 +1,9 @@
-Strings and encodings
-=====================
+Settings
+========
 .. autofunction:: dlisio.set_encodings
 .. autofunction:: dlisio.get_encodings
+.. autofunction:: dlisio.set_escape_level
+.. autofunction:: dlisio.get_escape_level
 
 Open and Load
 =============

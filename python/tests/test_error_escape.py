@@ -23,11 +23,6 @@ def test_set_invalid_escape_level():
         dlisio.set_escape_level("invalid")
     assert "Invalid severity argument 'invalid'" in str(excinfo.value)
 
-# TODO: test_errors_explicit (let users examine the errors regardless of escape
-# level set)
-
-# TODO: test mix (do not fail on truncation, but fail on bad attribute access)
-
 def test_unescapable_notdlis(assert_error):
     path = 'data/chap2/nondlis.txt'
     with pytest.raises(RuntimeError) as excinfo:
@@ -142,3 +137,66 @@ def test_parse_info_errored(tmpdir, merge_files_oneLR):
             _ = f.object('REDUNDANT', 'OBJECT', 1, 1)
         assert "Redundant sets are not supported" in str(excinfo.value)
 
+@pytest.fixture
+def create_very_broken_file(tmpdir, merge_files_oneLR, merge_files_manyLR):
+    valid = os.path.join(str(tmpdir), 'valid.dlis')
+    content = [
+        'data/chap3/start.dlis.part',
+        'data/chap3/template/invalid-repcode-no-value.dlis.part',
+        'data/chap3/object/object.dlis.part',
+        # will cause issues on attribute access
+        'data/chap3/objattr/empty.dlis.part',
+        'data/chap3/object/object2.dlis.part',
+        # will cause issues on parsing
+        'data/chap3/objattr/reprcode-invalid-value.dlis.part'
+    ]
+    merge_files_oneLR(valid, content)
+
+    content = [
+        valid,
+        'data/chap3/sul.dlis.part', # will cause issues on load
+    ]
+
+    def create_file(path):
+        merge_files_manyLR(path, content)
+    return create_file
+
+
+def test_complex(create_very_broken_file, tmpdir):
+
+    path = os.path.join(str(tmpdir), 'complex.dlis')
+    create_very_broken_file(path)
+
+    dlisio.set_escape_level("warning")
+    with pytest.raises(RuntimeError):
+        with dlisio.load(path) as (f, *_):
+            pass
+
+    # escape errors on load
+    dlisio.set_escape_level("error")
+    with dlisio.load(path) as (f, *_):
+
+        # fail again on parsing objects not parsed on load
+        dlisio.set_escape_level("warning")
+        with pytest.raises(RuntimeError) as excinfo:
+            _ = f.object('VERY_MUCH_TESTY_SET', 'OBJECT', 1, 1)
+        assert "parse: error on parsing" in str(excinfo.value)
+
+        # escape errors on parsing
+        dlisio.set_escape_level("error") # bypass errors on parsing
+        obj = f.object('VERY_MUCH_TESTY_SET', 'OBJECT', 1, 1)
+
+        dlisio.set_escape_level("warning")
+        # set is parsed, but user should get error anyway from other source
+        with pytest.raises(RuntimeError) as excinfo:
+            _ = f.object('VERY_MUCH_TESTY_SET', 'OBJECT', 1, 1)
+        assert "Message from object set" in str(excinfo.value)
+
+        # fail on attribute access
+        dlisio.set_escape_level("warning")
+        with pytest.raises(RuntimeError):
+            _ = obj.attic['INVALID']
+
+        # retrieve whatever value from errored attribute
+        dlisio.set_escape_level("error")
+        _ = obj.attic['INVALID']
