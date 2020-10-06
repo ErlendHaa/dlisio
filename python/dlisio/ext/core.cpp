@@ -631,11 +631,10 @@ noexcept (false) {
 
     /*
      * Resizing is clumsy, because in-place resize (through the method)
-     * requires there to be no references to the underlying data. That means
+      requires there to be no references to the underlying data. That means
      * the buffer-info and buffer must be wiped before resizing takes place,
      * and then carefully restored to the new memory.
-     */
-    auto resize = [&](std::size_t n) {
+     */    auto resize = [&](std::size_t n) {
         info = py::buffer_info {};
         dstb = py::buffer {};
         dstobj.attr("resize")(n);
@@ -816,9 +815,9 @@ PYBIND11_MODULE(core, m) {
                               dl::ushort{copynum},
                               dl::ident{id}};
         }))
-        .def( "fingerprint",         &dl::obname::fingerprint )
-        .def( "__eq__",              &dl::obname::operator == )
-        .def( "__ne__",              &dl::obname::operator != )
+        .def( "fingerprint", &dl::obname::fingerprint )
+        .def( "__eq__",      &dl::obname::operator == )
+        .def( "__ne__",      &dl::obname::operator != )
         .def( "__repr__", []( const dl::obname& o ) {
             return "dlisio.core.obname(id='{}', origin={}, copynum={})"_s
                     .format( dl::decay(o.id),
