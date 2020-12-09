@@ -35,6 +35,13 @@ function pre_build {
         popd;
     fi
 
+    if [ -z "$IS_OSX" ]; then
+        pushd variant/build && cd variant/build;
+        cmake ..;
+        cmake --build . --target install;
+        popd;
+    fi
+
     mkdir build-centos5
     pushd build-centos5
 

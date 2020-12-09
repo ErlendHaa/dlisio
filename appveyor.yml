@@ -59,6 +59,7 @@ before_build:
     - set install-dir=C:/Program Files
     - IF "%platform%" == "x86" set install-dir=C:/Program Files (x86)
     - set lfp_DIR=%install-dir%/layered-file-protocols/share/lfp/cmake
+    - set mpark_variant_DIR=%install-dir%/Mpark.Variant/lib/cmake/mpark_variant
     - ps: popd
 
 build_script:

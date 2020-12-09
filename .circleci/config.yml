@@ -48,6 +48,14 @@ commands:
                   -DCMAKE_BUILD_TYPE=Release ..
             make
             <<#parameters.sudo >> sudo <</parameters.sudo >> make install
+      - run:
+          name: install mpark::variant
+          command: |
+            git clone https://github.com/mpark/variant.git
+            mkdir variant/build && cd variant/build
+            cmake -DCMAKE_BUILD_TYPE=Release ..
+            make
+            <<#parameters.sudo >> sudo <</parameters.sudo >> make install
 
   python_build:
     parameters:
@@ -73,7 +81,6 @@ commands:
             make
             sudo make install
             sudo ldconfig /usr/local/lib
-            echo "export mpark_DIR=$PWD/external/mpark" >> $BASH_ENV
       - run:
           name: install python dependencies
           command: python -m pip install --user -r python/requirements-dev.txt
@@ -307,6 +314,16 @@ jobs:
                   ..
             # lfp must be build with the same build config as dlisio or build will fail
             cmake --build . --config << parameters.build_type >>  --target install
+      # TODO cache
+      - run:
+          name: install mpark::variant
+          command: |
+            git clone https://github.com/mpark/variant.git
+            mkdir variant/build
+            cd variant/build
+            cmake -DCMAKE_BUILD_TYPE=Release -A $env:generatorplatform ..
+            cmake --build . --target install
+
       - pull_submodules
       - restore_cache:
           key: vers6-miniconda-<< parameters.python >>-<< parameters.platform >>
@@ -341,6 +358,7 @@ jobs:
             # in contrast with fmt, we need to set lfp_DIR
             # fmt is found automatically because of default path (C:/Program Files/FMT/lib/cmake)
             $env:lfp_DIR = $env:install_dir + "/layered-file-protocols/share/lfp/cmake"
+            $env:mpark_variant_DIR = $env:install_dir + "/Mpark.Variant/lib/cmake/mpark_variant"
             cmake -G "Visual Studio 16 2019" `
                   -DCMAKE_CXX_FLAGS="/D_CRT_SECURE_NO_WARNINGS" `
                   -DCMAKE_BUILD_TYPE=<< parameters.build_type >> `
