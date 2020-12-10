@@ -11,7 +11,7 @@
 
 #include <mpark/variant.hpp>
 
-#include <dlisio/types.h>
+#include <dlisio/types.hpp>
 
 #include "strong-typedef.hpp"
 

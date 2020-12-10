@@ -12,8 +12,8 @@
 #include <lfp/rp66.h>
 #include <lfp/tapeimage.h>
 
-#include <dlisio/dlisio.h>
-#include <dlisio/types.h>
+#include <dlisio/dlisio.hpp>
+#include <dlisio/types.hpp>
 
 #include <dlisio/ext/io.hpp>
 
@@ -68,7 +68,7 @@ long long findsul( stream& file ) noexcept (false) {
     file.seek(0);
     auto bytes_read = file.read(buffer, 200);
 
-    const auto err = dlis_find_sul(buffer, bytes_read, &offset);
+    const auto err = dl::find_sul(buffer, bytes_read, &offset);
 
     switch (err) {
         case DLIS_OK:
@@ -86,7 +86,7 @@ long long findsul( stream& file ) noexcept (false) {
         }
 
         default:
-            throw std::runtime_error("dlis_find_sul: unknown error");
+            throw std::runtime_error("dl::find_sul: unknown error");
     }
 }
 
@@ -101,7 +101,7 @@ long long findvrl( stream& file, long long from ) noexcept (false) {
     char buffer[ 200 ];
     file.seek(from);
     auto bytes_read = file.read(buffer, 200);
-    const auto err = dlis_find_vrl(buffer, bytes_read, &offset);
+    const auto err = dl::find_vrl(buffer, bytes_read, &offset);
 
     // TODO: error messages could maybe be pulled from core library
     switch (err) {
@@ -122,7 +122,7 @@ long long findvrl( stream& file, long long from ) noexcept (false) {
         }
 
         default:
-            throw std::runtime_error("dlis_find_vrl: unknown error");
+            throw std::runtime_error("dl::find_vrl: unknown error");
     }
 }
 
@@ -135,7 +135,7 @@ bool hastapemark(stream& file) noexcept (false) {
     if (bytes_read < TAPEMARK_SIZE)
         throw std::runtime_error("hastapemark: unable to read full tapemark");
 
-    const auto err = dlis_tapemark(buffer, TAPEMARK_SIZE);
+    const auto err = dl::tapemark(buffer, TAPEMARK_SIZE);
 
     switch (err) {
         case DLIS_OK:
@@ -145,7 +145,7 @@ bool hastapemark(stream& file) noexcept (false) {
             return false;
 
         default:
-            throw std::runtime_error("dlis_tapemark: unknown error");
+            throw std::runtime_error("dl::tapemark: unknown error");
     }
 }
 
@@ -182,7 +182,7 @@ void trim_segment(std::uint8_t attrs,
 noexcept (false) {
     int trim = 0;
     const auto* end = begin + segment_size;
-    const auto err = dlis_trim_record_segment(attrs, begin, end, &trim);
+    const auto err = dl::trim_record_segment(attrs, begin, end, &trim);
 
     switch (err) {
         case DLIS_OK:
@@ -190,7 +190,7 @@ noexcept (false) {
             return;
 
         case DLIS_BAD_SIZE: {
-            if (trim - segment_size != DLIS_LRSH_SIZE) {
+            if (trim - segment_size != dl::LRSH_SIZE) {
                 const auto msg =
                     "bad segment trim: trim size (which is {}) "
                     ">= segment.size() (which is {})";
@@ -212,7 +212,7 @@ noexcept (false) {
         }
 
         default:
-            throw std::invalid_argument("dlis_trim_record_segment");
+            throw std::invalid_argument("dl::trim_record_segment");
     }
 }
 
@@ -323,16 +323,16 @@ record& extract(stream& file, long long tell, long long bytes, record& rec,
     file.seek(tell);
 
     while (true) {
-        char buffer[ DLIS_LRSH_SIZE ];
-        auto nread = file.read( buffer, DLIS_LRSH_SIZE );
-        if ( nread < DLIS_LRSH_SIZE )
+        char buffer[ dl::LRSH_SIZE ];
+        auto nread = file.read( buffer, dl::LRSH_SIZE );
+        if ( nread < dl::LRSH_SIZE )
             throw std::runtime_error("extract: unable to read LRSH, file truncated");
 
         int len, type;
         std::uint8_t attrs;
-        dlis_lrsh( buffer, &len, &attrs, &type );
+        dl::lrsh( buffer, &len, &attrs, &type );
 
-        len -= DLIS_LRSH_SIZE;
+        len -= dl::LRSH_SIZE;
 
         attributes.push_back( attrs );
         types.push_back( type );
@@ -404,7 +404,7 @@ noexcept (false) {
     std::int64_t lrs_offset = 0;
 
     bool has_successor = false;
-    char buffer[ DLIS_LRSH_SIZE ];
+    char buffer[ dl::LRSH_SIZE ];
 
     const auto handle = [&]( const std::string& problem ) {
         const auto context = "dl::findoffsets (indexing logical file)";
@@ -420,7 +420,7 @@ noexcept (false) {
 
     while (true) {
         try {
-            read = file.read(buffer, DLIS_LRSH_SIZE);
+            read = file.read(buffer, dl::LRSH_SIZE);
         } catch (std::exception& e) {
             handle(e.what());
             break;
@@ -456,7 +456,7 @@ noexcept (false) {
 
         int type;
         std::uint8_t attrs;
-        dlis_lrsh( buffer, &len, &attrs, &type );
+        dl::lrsh( buffer, &len, &attrs, &type );
         if (len < 4) {
             const auto problem =
                 "Too short logical record. Length can't be less than 4, "
@@ -568,7 +568,10 @@ dl::error_handler& errorhandler) noexcept (false) {
         uint8_t copy;
         int32_t idlen;
         char id[ 256 ];
-        const char* cur = dlis_obname(rec.data.data(), &origin, &copy, &idlen, id);
+        const char* cur = dl::obname_frombytes(rec.data.data(), &origin,
+                                                                &copy,
+                                                                &idlen,
+                                                                id);
 
         std::size_t obname_size = cur - rec.data.data();
         if (obname_size > rec.data.size()) {
