@@ -6,7 +6,7 @@
 
 #include <catch2/catch.hpp>
 
-#include <dlisio/dlisio.h>
+#include <dlisio/dlisio.hpp>
 
 
 namespace {
@@ -18,7 +18,7 @@ struct check_packflen {
 
     ~check_packflen() {
         int nread, nwrite;
-        const auto err = dlis_packflen(fmt, source.data(), &nread, &nwrite);
+        const auto err = dl::packflen(fmt, source.data(), &nread, &nwrite);
         CHECK(err == DLIS_OK);
         CHECK(nread == source.size());
         CHECK(nwrite == buffer.size());
@@ -36,7 +36,7 @@ struct check_packsize : check_packflen {
     void pck_check_pack_size(){
         std::int32_t src_size;
         std::int32_t dst_size;
-        const auto err = dlis_pack_size( fmt, &src_size, &dst_size );
+        const auto err = dl::pack_size( fmt, &src_size, &dst_size );
         CHECK( !err );
         CHECK( src_size == source.size() );
         CHECK( dst_size == buffer.size() );
@@ -45,7 +45,7 @@ struct check_packsize : check_packflen {
     void pck_check_pack_varsize(){
         int src_variable;
         int dst_variable;
-        const auto err = dlis_pack_varsize( fmt, &src_variable, &dst_variable );
+        const auto err = dl::pack_varsize( fmt, &src_variable, &dst_variable );
         CHECK( !err );
         CHECK( !src_variable );
         CHECK( !dst_variable );
@@ -63,7 +63,7 @@ struct check_mixed_packsize : check_packflen {
     void mix_check_pack_size(){
         std::int32_t src_size;
         std::int32_t dst_size;
-        const auto err = dlis_pack_size( fmt, &src_size, &dst_size );
+        const auto err = dl::pack_size( fmt, &src_size, &dst_size );
         CHECK( !err );
         CHECK( src_size == 0 );
         CHECK( dst_size == buffer.size() );
@@ -72,7 +72,7 @@ struct check_mixed_packsize : check_packflen {
     void mix_check_pack_varsize(){
         int src_variable;
         int dst_variable;
-        const auto err = dlis_pack_varsize( fmt, &src_variable, &dst_variable );
+        const auto err = dl::pack_varsize( fmt, &src_variable, &dst_variable );
         CHECK( !err );
         CHECK(  src_variable );
         CHECK( !dst_variable );
@@ -98,7 +98,7 @@ TEST_CASE_METHOD(check_mixed_packsize, "pack UVARIs and ORIGINs", "[pack]") {
     std::int32_t dst[ 8 ];
     buffer.resize(sizeof(dst));
 
-    const auto err = dlis_packf( fmt, source.data(), dst );
+    const auto err = dl::packf( fmt, source.data(), dst );
 
     CHECK( err == DLIS_OK );
     CHECK( dst[ 0 ] == 0 );
@@ -129,7 +129,7 @@ TEST_CASE_METHOD(check_mixed_packsize,
     std::int32_t dst[ 9 ];
     buffer.resize(sizeof(dst));
 
-    const auto err = dlis_packf( fmt, source.data(), dst );
+    const auto err = dl::packf( fmt, source.data(), dst );
 
     CHECK( err == DLIS_OK );
     CHECK( dst[ 0 ] == 1 );
@@ -157,7 +157,7 @@ TEST_CASE_METHOD(check_packsize, "pack unsigned integers", "[pack]") {
     buffer.resize((1 * 2) + (2 * 2) + (4 * 2));
     auto* dst = buffer.data();
 
-    const auto err = dlis_packf( fmt, source.data(), dst );
+    const auto err = dl::packf( fmt, source.data(), dst );
     CHECK( err == DLIS_OK );
 
     std::uint8_t us[2];
@@ -193,7 +193,7 @@ TEST_CASE_METHOD(check_packsize, "pack signed integers", "[pack]") {
     buffer.resize((1 * 2) + (2 * 2) + (4 * 3));
     auto* dst = buffer.data();
 
-    const auto err = dlis_packf( fmt, source.data(), dst );
+    const auto err = dl::packf( fmt, source.data(), dst );
     CHECK( err == DLIS_OK );
 
     std::int8_t ss[2];
@@ -229,7 +229,7 @@ TEST_CASE_METHOD(check_packsize, "pack floats", "[pack]") {
     buffer.resize(8 * sizeof(float));
     float* dst = reinterpret_cast< float* >( buffer.data() );
 
-    const auto err = dlis_packf( fmt, source.data(), dst );
+    const auto err = dl::packf( fmt, source.data(), dst );
     CHECK( err == DLIS_OK );
 
     CHECK( dst[ 0 ] == 153.0 );
@@ -261,7 +261,7 @@ TEST_CASE_METHOD(check_packsize, "pack statistical", "[pack]") {
     buffer.resize(4 * 2 + 4 * 3 + 8 * 2 + 8 * 3);
     auto* dst = buffer.data();
 
-    const auto err = dlis_packf( fmt, source.data(), dst );
+    const auto err = dl::packf( fmt, source.data(), dst );
     CHECK( err == DLIS_OK );
 
     float fs1[2];
@@ -298,7 +298,7 @@ TEST_CASE_METHOD(check_packsize, "pack doubles", "[pack]") {
     fmt = "FFF";
     auto* dst = reinterpret_cast< double* >( buffer.data() );
 
-    const auto err = dlis_packf( fmt, source.data(), dst );
+    const auto err = dl::packf( fmt, source.data(), dst );
     CHECK( err == DLIS_OK );
 
     CHECK( dst[ 0 ] == 0.25 );
@@ -318,7 +318,7 @@ TEST_CASE_METHOD(check_packsize, "pack complex", "[pack]") {
     buffer.resize( 4 * 2 + 8 * 2 );
     auto* dst = buffer.data();
 
-    const auto err = dlis_packf( fmt, source.data(), dst );
+    const auto err = dl::packf( fmt, source.data(), dst );
     CHECK( err == DLIS_OK );
 
     float cs[2];
@@ -346,7 +346,7 @@ TEST_CASE_METHOD(check_packsize, "pack datetime", "[pack]") {
     buffer.resize( 2 * 8 * sizeof(int) );
     auto* dst = reinterpret_cast< int* >( buffer.data() );
 
-    const auto err = dlis_packf( fmt, source.data(), dst );
+    const auto err = dl::packf( fmt, source.data(), dst );
     CHECK( err == DLIS_OK );
 
     CHECK( dst[0] == 255 );
@@ -378,7 +378,7 @@ TEST_CASE_METHOD(check_packsize, "pack status", "[pack]") {
     fmt = "qq";
     auto* dst = buffer.data();
 
-    const auto err = dlis_packf( fmt, source.data(), dst );
+    const auto err = dl::packf( fmt, source.data(), dst );
     CHECK( err == DLIS_OK );
 
     CHECK( !dst[ 0 ] );
@@ -391,12 +391,12 @@ struct check_is_varsize {
     ~check_is_varsize () {
         int src_variable;
         int dst_variable;
-        auto err = dlis_pack_varsize( fmt, &src_variable, &dst_variable );
+        auto err = dl::pack_varsize( fmt, &src_variable, &dst_variable );
         CHECK( err == DLIS_OK );
         CHECK( src_variable );
         CHECK( dst_variable );
 
-        err = dlis_pack_size( fmt, &src_variable, &dst_variable);
+        err = dl::pack_size( fmt, &src_variable, &dst_variable);
         CHECK( err == DLIS_INCONSISTENT );
     }
 
@@ -459,7 +459,7 @@ TEST_CASE_METHOD(check_is_varsize, "pack ident & ascii & unit", "[pack]") {
     REQUIRE( std::string(fmt).size() == expected.size() );
     auto* dst = buffer.data();
 
-    const auto err = dlis_packf( fmt, source, dst );
+    const auto err = dl::packf( fmt, source, dst );
     CHECK( err == DLIS_OK );
 
     std::array< std::string, 9 > result;
@@ -497,7 +497,7 @@ TEST_CASE_METHOD(check_is_varsize, "pack long ascii ", "[pack]") {
     fmt = "S";
 
     std::vector< char > dst( src.size() );
-    const auto err = dlis_packf( fmt, src.data(), dst.data() );
+    const auto err = dl::packf( fmt, src.data(), dst.data() );
     CHECK( err == DLIS_OK );
 
     std::int32_t length;
@@ -526,7 +526,7 @@ TEST_CASE_METHOD(check_is_varsize, "pack obname", "[pack]") {
     fmt = "oo";
     auto* dst = buffer.data();
 
-    const auto err = dlis_packf( fmt, source, dst );
+    const auto err = dl::packf( fmt, source, dst );
     CHECK( err == DLIS_OK );
 
     std::int32_t origin;
@@ -562,7 +562,7 @@ TEST_CASE_METHOD(check_is_varsize, "pack objref", "[pack]") {
     auto* dst = buffer.data();
 
     fmt = "O";
-    const auto err = dlis_packf( fmt, source, dst );
+    const auto err = dl::packf( fmt, source, dst );
     CHECK( err == DLIS_OK );
 
     std::string type;
@@ -602,7 +602,7 @@ TEST_CASE_METHOD(check_is_varsize, "pack attref", "[pack]") {
     std::vector< char > buffer( (4 + 10) + (4 + 1) + (4 + 12) + (4 + 13) );
     auto* dst = buffer.data();
 
-    const auto err = dlis_packf( fmt, source, dst );
+    const auto err = dl::packf( fmt, source, dst );
     CHECK( err == DLIS_OK );
 
     std::string type;
@@ -637,7 +637,7 @@ TEST_CASE_METHOD(check_mixed_packsize, "pack mixed", "[pack]") {
     fmt = "rijJ";
     auto* dst = buffer.data();
 
-    const auto err = dlis_packf( fmt, source.data(), dst );
+    const auto err = dl::packf( fmt, source.data(), dst );
     CHECK( err == DLIS_OK );
 
     float fl[1];
@@ -661,7 +661,7 @@ TEST_CASE_METHOD(check_is_varsize, "pack unexpected value", "[pack]") {
     unsigned char dst[6];
     fmt = "ust";
 
-    const auto err = dlis_packf( fmt, source, dst );
+    const auto err = dl::packf( fmt, source, dst );
 
     CHECK( err == DLIS_UNEXPECTED_VALUE);
     CHECK( dst[0] == 89);
@@ -669,22 +669,22 @@ TEST_CASE_METHOD(check_is_varsize, "pack unexpected value", "[pack]") {
 }
 
 TEST_CASE("pack var-size fails with invalid specifier") {
-    CHECK( dlis_pack_varsize( "w",  nullptr, nullptr ) == DLIS_INVALID_ARGS );
-    CHECK( dlis_pack_varsize( "lw", nullptr, nullptr ) == DLIS_INVALID_ARGS );
-    CHECK( dlis_pack_varsize( "wl", nullptr, nullptr ) == DLIS_INVALID_ARGS );
+    CHECK( dl::pack_varsize( "w",  nullptr, nullptr ) == DLIS_INVALID_ARGS );
+    CHECK( dl::pack_varsize( "lw", nullptr, nullptr ) == DLIS_INVALID_ARGS );
+    CHECK( dl::pack_varsize( "wl", nullptr, nullptr ) == DLIS_INVALID_ARGS );
 }
 
 namespace {
 
 bool dst_pack_varsize( const char* fmt ) {
     int vsize;
-    CHECK( dlis_pack_varsize( fmt, nullptr, &vsize ) == DLIS_OK );
+    CHECK( dl::pack_varsize( fmt, nullptr, &vsize ) == DLIS_OK );
     return vsize;
 };
 
 bool src_pack_varsize( const char* fmt ) {
     int vsize;
-    CHECK( dlis_pack_varsize( fmt, &vsize, nullptr ) == DLIS_OK );
+    CHECK( dl::pack_varsize( fmt, &vsize, nullptr ) == DLIS_OK );
     return vsize;
 };
 
@@ -769,14 +769,14 @@ namespace {
 
 int dst_packsize( const char* fmt ) {
     int size;
-    CHECK( dlis_pack_size( fmt, nullptr, &size ) == DLIS_OK );
+    CHECK( dl::pack_size( fmt, nullptr, &size ) == DLIS_OK );
     return size;
 };
 
 
 int src_packsize( const char* fmt ) {
     int size;
-    CHECK( dlis_pack_size( fmt, &size, nullptr ) == DLIS_OK );
+    CHECK( dl::pack_size( fmt, &size, nullptr ) == DLIS_OK );
     return size;
 };
 
@@ -832,10 +832,10 @@ TEST_CASE("source pack size single values consistent") {
 }
 
 TEST_CASE("pack size single values inconsistent") {
-    CHECK( dlis_pack_size( "s" , nullptr, nullptr ) == DLIS_INCONSISTENT );
-    CHECK( dlis_pack_size( "S" , nullptr, nullptr ) == DLIS_INCONSISTENT );
-    CHECK( dlis_pack_size( "o" , nullptr, nullptr ) == DLIS_INCONSISTENT );
-    CHECK( dlis_pack_size( "O" , nullptr, nullptr ) == DLIS_INCONSISTENT );
-    CHECK( dlis_pack_size( "A" , nullptr, nullptr ) == DLIS_INCONSISTENT );
-    CHECK( dlis_pack_size( "Q" , nullptr, nullptr ) == DLIS_INCONSISTENT );
+    CHECK( dl::pack_size( "s" , nullptr, nullptr ) == DLIS_INCONSISTENT );
+    CHECK( dl::pack_size( "S" , nullptr, nullptr ) == DLIS_INCONSISTENT );
+    CHECK( dl::pack_size( "o" , nullptr, nullptr ) == DLIS_INCONSISTENT );
+    CHECK( dl::pack_size( "O" , nullptr, nullptr ) == DLIS_INCONSISTENT );
+    CHECK( dl::pack_size( "A" , nullptr, nullptr ) == DLIS_INCONSISTENT );
+    CHECK( dl::pack_size( "Q" , nullptr, nullptr ) == DLIS_INCONSISTENT );
 }

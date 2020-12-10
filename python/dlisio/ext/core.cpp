@@ -18,8 +18,8 @@
 #include <pybind11/stl.h>
 #include <datetime.h>
 
-#include <dlisio/dlisio.h>
-#include <dlisio/types.h>
+#include <dlisio/dlisio.hpp>
+#include <dlisio/types.hpp>
 
 namespace py = pybind11;
 using namespace py::literals;
@@ -270,11 +270,11 @@ void runtime_warning( const char* msg ) {
 
 py::dict storage_label( py::buffer b ) {
     auto info = b.request();
-    if (info.size < DLIS_SUL_SIZE) {
+    if (info.size < dl::SIZEOF_SUL) {
         std::string msg =
             "buffer to small: buffer.size (which is "
             + std::to_string( info.size ) + ") < "
-            + "n (which is " + std::to_string( DLIS_SUL_SIZE ) + ")"
+            + "n (which is " + std::to_string( dl::SIZEOF_SUL ) + ")"
         ;
         throw std::invalid_argument( msg );
     }
@@ -285,13 +285,13 @@ py::dict storage_label( py::buffer b ) {
     int layout;
     std::int64_t maxlen;
     char id[ 61 ] = {};
-    auto err = dlis_sul( static_cast< const char* >( info.ptr ),
-                         &seqnum,
-                         &major,
-                         &minor,
-                         &layout,
-                         &maxlen,
-                         id );
+    auto err = dl::sul( static_cast< const char* >( info.ptr ),
+                        &seqnum,
+                        &major,
+                        &minor,
+                        &layout,
+                        &maxlen,
+                        id );
 
 
     switch (err) {
@@ -422,55 +422,55 @@ void read_curve_sample(const char* f, const char*& ptr, const char* end,
          dst += sizeof(p);
      };
 
-     if (*f == DLIS_FMT_FSING1) {
+     if (*f == dl::FMT_FSING1) {
         float v;
         float a;
-        ptr = dlis_fsing1(ptr, &v, &a);
+        ptr = dl::fsing1_frombytes(ptr, &v, &a);
         auto t = py::make_tuple(v, a);
 
         swap_pointer(t);
         return;
     }
 
-     if (*f == DLIS_FMT_FSING2) {
+     if (*f == dl::FMT_FSING2) {
         float v;
         float a;
         float b;
-        ptr = dlis_fsing2(ptr, &v, &a, &b);
+        ptr = dl::fsing2_frombytes(ptr, &v, &a, &b);
         auto t = py::make_tuple(v, a, b);
 
         swap_pointer(t);
         return;
     }
 
-     if (*f == DLIS_FMT_FDOUB1) {
+     if (*f == dl::FMT_FDOUB1) {
         double v;
         double a;
-        ptr = dlis_fdoub1(ptr, &v, &a);
+        ptr = dl::fdoub1_frombytes(ptr, &v, &a);
         auto t = py::make_tuple(v, a);
 
         swap_pointer(t);
         return;
     }
 
-     if (*f == DLIS_FMT_FDOUB2) {
+     if (*f == dl::FMT_FDOUB2) {
         double v;
         double a;
         double b;
-        ptr = dlis_fdoub2(ptr, &v, &a, &b);
+        ptr = dl::fdoub2_frombytes(ptr, &v, &a, &b);
         auto t = py::make_tuple(v, a, b);
 
         swap_pointer(t);
         return;
     }
 
-    if (*f == DLIS_FMT_IDENT || *f == DLIS_FMT_UNITS) {
+    if (*f == dl::FMT_IDENT || *f == dl::FMT_UNITS) {
         constexpr auto chars = 255;
         constexpr auto ident_size = chars * sizeof(std::uint32_t);
 
         std::int32_t len;
         char tmp[chars];
-        ptr = dlis_ident(ptr, &len, tmp);
+        ptr = dl::ident_frombytes(ptr, &len, tmp);
 
         /*
          * From reading the numpy source, it looks like they put
@@ -487,9 +487,9 @@ void read_curve_sample(const char* f, const char*& ptr, const char* end,
         return;
     }
 
-    if (*f == DLIS_FMT_ASCII) {
+    if (*f == dl::FMT_ASCII) {
         std::int32_t len;
-        ptr = dlis_uvari(ptr, &len);
+        ptr = dl::uvari_frombytes(ptr, &len);
         auto ascii = py::str(ptr, len);
         ptr += len;
 
@@ -508,12 +508,12 @@ void read_curve_sample(const char* f, const char*& ptr, const char* end,
         return;
     }
 
-    if (*f == DLIS_FMT_OBNAME) {
+    if (*f == dl::FMT_OBNAME) {
         std::int32_t origin;
         std::uint8_t copy;
         std::int32_t idlen;
         char id[255];
-        ptr = dlis_obname(ptr, &origin, &copy, &idlen, id);
+        ptr = dl::obname_frombytes(ptr, &origin, &copy, &idlen, id);
 
         const auto name = dl::obname {
             dl::origin(origin),
@@ -525,20 +525,20 @@ void read_curve_sample(const char* f, const char*& ptr, const char* end,
         return;
     }
 
-    if (*f == DLIS_FMT_OBJREF) {
+    if (*f == dl::FMT_OBJREF) {
         std::int32_t idlen;
         char id[255];
         std::int32_t origin;
         std::uint8_t copy;
         std::int32_t objnamelen;
         char objname[255];
-        ptr = dlis_objref(ptr,
-                          &idlen,
-                          id,
-                          &origin,
-                          &copy,
-                          &objnamelen,
-                          objname);
+        ptr = dl::objref_frombytes(ptr,
+                                   &idlen,
+                                   id,
+                                   &origin,
+                                   &copy,
+                                   &objnamelen,
+                                   objname);
 
         const auto name = dl::objref {
             dl::ident(std::string(id, idlen)),
@@ -553,7 +553,7 @@ void read_curve_sample(const char* f, const char*& ptr, const char* end,
         return;
     }
 
-    if (*f == DLIS_FMT_ATTREF) {
+    if (*f == dl::FMT_ATTREF) {
         std::int32_t id1len;
         char id1[255];
         std::int32_t origin;
@@ -562,15 +562,15 @@ void read_curve_sample(const char* f, const char*& ptr, const char* end,
         char objname[255];
         std::int32_t id2len;
         char id2[255];
-        ptr = dlis_attref(ptr,
-                          &id1len,
-                          id1,
-                          &origin,
-                          &copy,
-                          &objnamelen,
-                          objname,
-                          &id2len,
-                          id2);
+        ptr = dl::attref_frombytes(ptr,
+                                   &id1len,
+                                   id1,
+                                   &origin,
+                                   &copy,
+                                   &objnamelen,
+                                   objname,
+                                   &id2len,
+                                   id2);
 
         const auto ref = dl::attref {
             dl::ident(std::string(id1, id1len)),
@@ -586,10 +586,10 @@ void read_curve_sample(const char* f, const char*& ptr, const char* end,
         return;
     }
 
-    if (*f == DLIS_FMT_DTIME) {
+    if (*f == dl::FMT_DTIME) {
         int Y, TZ, M, D, H, MN, S, MS;
-        ptr = dlis_dtime(ptr, &Y, &TZ, &M, &D, &H, &MN, &S, &MS);
-        Y = dlis_year(Y);
+        ptr = dl::dtime_frombytes(ptr, &Y, &TZ, &M, &D, &H, &MN, &S, &MS);
+        Y = dl::dlis_year_frombytes(Y);
         const auto US = MS * 1000;
 
         PyObject* p;
@@ -604,9 +604,9 @@ void read_curve_sample(const char* f, const char*& ptr, const char* end,
 
     int src_skip, dst_skip;
     const char localfmt[] = {*f, '\0'};
-    dlis_packflen(localfmt, ptr, &src_skip, &dst_skip);
+    dl::packflen(localfmt, ptr, &src_skip, &dst_skip);
     assert_overflow(ptr, end, src_skip);
-    dlis_packf(localfmt, ptr, dst);
+    dl::packf(localfmt, ptr, dst);
     dst += dst_skip;
     ptr += src_skip;
 }
@@ -639,13 +639,13 @@ noexcept (false) {
 
         int src_skip, dst_skip;
 
-        dlis_packflen(pre_fmt, ptr, &src_skip, nullptr);
+        dl::packflen(pre_fmt, ptr, &src_skip, nullptr);
         assert_overflow(ptr, end, src_skip);
         ptr += src_skip;
 
         read_fdata_frame(fmt, ptr, end, dst);
 
-        dlis_packflen(post_fmt, ptr, &src_skip, nullptr);
+        dl::packflen(post_fmt, ptr, &src_skip, nullptr);
         assert_overflow(ptr, end, src_skip);
         ptr += src_skip;
 
@@ -757,7 +757,7 @@ noexcept (false) {
         /* read fingerprint */
         std::int32_t origin;
         std::uint8_t copy;
-        ptr = dlis_obname(ptr, &origin, &copy, nullptr, nullptr);
+        ptr = dl::obname_frombytes(ptr, &origin, &copy, nullptr, nullptr);
 
         try {
             read_fdata_record(pre_fmt, fmt, post_fmt, ptr, end, dst, frames,

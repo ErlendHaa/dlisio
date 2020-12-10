@@ -6,7 +6,7 @@
 
 #include <catch2/catch.hpp>
 
-#include <dlisio/dlisio.h>
+#include <dlisio/dlisio.hpp>
 
 
 struct SULv1 {
@@ -75,12 +75,12 @@ std::string blockify( const std::string& xs, int len = 16 ) {
 
 SULv1 parse_sulv1( const std::string& sul ) {
     SULv1 v1;
-    auto err = dlis_sul( sul.c_str(), &v1.seqnum,
-                                      &v1.major,
-                                      &v1.minor,
-                                      &v1.layout,
-                                      &v1.maxlen,
-                                      v1.id );
+    auto err = dl::sul( sul.c_str(), &v1.seqnum,
+                                     &v1.major,
+                                     &v1.minor,
+                                     &v1.layout,
+                                     &v1.maxlen,
+                                     v1.id );
     REQUIRE( err == 0 );
     return v1;
 }
@@ -217,13 +217,13 @@ struct correct_sul
     protected:
     void check_sul(std::string exp_input, int exp_return_value){
         INFO( "Storage unit label:\n" << blockify( exp_input ) );
-        auto err = dlis_sul( exp_input.c_str(),
-                             &v1.seqnum,
-                             &v1.major,
-                             &v1.minor,
-                             &v1.layout,
-                             &v1.maxlen,
-                             v1.id );
+        auto err = dl::sul( exp_input.c_str(),
+                            &v1.seqnum,
+                            &v1.major,
+                            &v1.minor,
+                            &v1.layout,
+                            &v1.maxlen,
+                            v1.id );
 
         CHECK( err == exp_return_value );
     }
@@ -333,8 +333,8 @@ TEST_CASE_METHOD(correct_sul, "maxlen can be bigger than supposed VRL", "[sul]")
 
 TEST_CASE_METHOD(correct_sul, "SUL with null seqnum", "[sul][nulls]") {
     auto label = "   0" + revistr + structur + maxilen + id;
-    auto err = dlis_sul( label.c_str(), nullptr, &v1.major, &v1.minor,
-                                        &v1.layout, &v1.maxlen, v1.id );
+    auto err = dl::sul( label.c_str(), nullptr, &v1.major, &v1.minor,
+                                       &v1.layout, &v1.maxlen, v1.id );
     CHECK( err == DLIS_OK );
     CHECK( v1.layout == DLIS_STRUCTURE_RECORD );
     CHECK( v1.maxlen == std::stoi(maxilen) );
@@ -343,7 +343,7 @@ TEST_CASE_METHOD(correct_sul, "SUL with null seqnum", "[sul][nulls]") {
 
 TEST_CASE_METHOD(correct_sul, "SUL with null layout", "[sul][nulls]") {
     auto label = seqstr + revistr + "DLISIO" + maxilen + id;
-    auto err = dlis_sul( label.c_str(), &v1.seqnum, &v1.major, &v1.minor,
+    auto err = dl::sul( label.c_str(), &v1.seqnum, &v1.major, &v1.minor,
                                         nullptr, &v1.maxlen, v1.id );
     CHECK( err == DLIS_OK );
     CHECK( v1.seqnum == std::stoi(seqstr) );
@@ -353,8 +353,8 @@ TEST_CASE_METHOD(correct_sul, "SUL with null layout", "[sul][nulls]") {
 
 TEST_CASE_METHOD(correct_sul, "SUL with null maxlen", "[sul][nulls]") {
     auto label = seqstr + revistr + structur + "ABCDE" + id;
-    auto err = dlis_sul( label.c_str(), &v1.seqnum, &v1.major, &v1.minor,
-                                        &v1.layout, nullptr, v1.id );
+    auto err = dl::sul( label.c_str(), &v1.seqnum, &v1.major, &v1.minor,
+                                       &v1.layout, nullptr, v1.id );
     CHECK( err == DLIS_OK );
     CHECK( v1.seqnum == std::stoi(seqstr) );
     CHECK( v1.layout == DLIS_STRUCTURE_RECORD );
@@ -363,8 +363,8 @@ TEST_CASE_METHOD(correct_sul, "SUL with null maxlen", "[sul][nulls]") {
 
 TEST_CASE_METHOD(correct_sul, "SUL with null id", "[sul][nulls]") {
     auto label = seqstr + revistr + structur + maxilen + "/0";
-    auto err = dlis_sul( label.c_str(), &v1.seqnum, &v1.major, &v1.minor,
-                                        &v1.layout, &v1.maxlen, nullptr );
+    auto err = dl::sul( label.c_str(), &v1.seqnum, &v1.major, &v1.minor,
+                                       &v1.layout, &v1.maxlen, nullptr );
     CHECK( err == DLIS_OK );
     CHECK( v1.seqnum == std::stoi(seqstr) );
     CHECK( v1.layout == DLIS_STRUCTURE_RECORD );
@@ -373,8 +373,8 @@ TEST_CASE_METHOD(correct_sul, "SUL with null id", "[sul][nulls]") {
 
 TEST_CASE_METHOD(correct_sul, "SUL with garbage minor/major version", "[sul]") {
     auto label = seqstr + "ABCDE" + structur + maxilen + id;
-    auto err = dlis_sul( label.c_str(), &v1.seqnum, &v1.major, &v1.minor,
-                                        &v1.layout, &v1.maxlen, v1.id );
+    auto err = dl::sul( label.c_str(), &v1.seqnum, &v1.major, &v1.minor,
+                                       &v1.layout, &v1.maxlen, v1.id );
     CHECK( err == DLIS_INCONSISTENT);
     CHECK( v1.seqnum == std::stoi(seqstr) );
     CHECK( v1.major == 1 );
@@ -408,7 +408,7 @@ TEST_CASE("Find SUL after 14 bytes of garbage", "[sul]") {
     const auto reel = noise + plain_sul;
 
     long long off;
-    const auto err = dlis_find_sul(reel.data(), reel.size(), &off);
+    const auto err = dl::find_sul(reel.data(), reel.size(), &off);
 
     REQUIRE(!err);
     CHECK(off == noise.size());
@@ -420,7 +420,7 @@ TEST_CASE("Find SUL after 14 bytes of garbage", "[sul]") {
 
 TEST_CASE("Find SUL when there is no garbage", "[sul]") {
     long long off = -1;
-    const auto err = dlis_find_sul(plain_sul, sizeof(plain_sul), &off);
+    const auto err = dl::find_sul(plain_sul, sizeof(plain_sul), &off);
 
     CHECK(!err);
     CHECK(off == 0);
@@ -429,7 +429,7 @@ TEST_CASE("Find SUL when there is no garbage", "[sul]") {
 TEST_CASE("find_sul gracefully handles missing SUL", "[sul]") {
     const auto stream = std::vector< char >(400, '.');
     long long off;
-    const auto err = dlis_find_sul(stream.data(), stream.size() / 2, &off);
+    const auto err = dl::find_sul(stream.data(), stream.size() / 2, &off);
     CHECK(err == DLIS_NOTFOUND);
 }
 
@@ -439,6 +439,6 @@ TEST_CASE("find_sul gracefully handles truncated SUL", "[sul]") {
     std::copy_n(plain_sul + shift, sizeof(plain_sul) - shift, stream.begin());
 
     long long off;
-    const auto err = dlis_find_sul(stream.data(), stream.size() / 2, &off);
+    const auto err = dl::find_sul(stream.data(), stream.size() / 2, &off);
     CHECK(err == DLIS_INCONSISTENT);
 }

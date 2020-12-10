@@ -9,8 +9,8 @@
 #include <string>
 #include <vector>
 
-#include <dlisio/dlisio.h>
-#include <dlisio/types.h>
+#include <dlisio/dlisio.hpp>
+#include <dlisio/types.hpp>
 
 namespace {
 
@@ -210,15 +210,17 @@ int sulv1( const char* xs,
     return DLIS_OK;
 }
 
-}
+} // namespace
 
-int dlis_sul( const char* xs,
-              int* seqnum,
-              int* major,
-              int* minor,
-              int* layout,
-              std::int64_t* maxlen,
-              char* id ) {
+namespace dl {
+
+int sul( const char* xs,
+         int* seqnum,
+         int* major,
+         int* minor,
+         int* layout,
+         std::int64_t* maxlen,
+         char* id ) {
     /*
      * First, check for DLIS1, which means the Storage Unit Label is 80 bytes
      * long ASCII, and revision starts at byte 4
@@ -259,9 +261,9 @@ int dlis_sul( const char* xs,
     return DLIS_UNEXPECTED_VALUE;
 }
 
-int dlis_find_sul(const char* from,
-                  long long search_limit,
-                  long long* offset) {
+int find_sul(const char* from,
+             long long search_limit,
+             long long* offset) {
 
     static const auto needle = "RECORD";
     const auto to = from + search_limit;
@@ -282,9 +284,9 @@ int dlis_find_sul(const char* from,
     return DLIS_OK;
 }
 
-int dlis_find_vrl(const char* from,
-                  long long search_limit,
-                  long long* offset) {
+int find_vrl(const char* from,
+             long long search_limit,
+             long long* offset) {
     /*
      * The first VRL does sometimes not immediately follow the SUL (or whatever
      * came before it), but according to spec it should be a triple of
@@ -316,10 +318,10 @@ int dlis_find_vrl(const char* from,
     /*
      * Before the 0xFF 0x01 there should be room for at least an unorm
      */
-    if (std::distance(first, itr) < DLIS_SIZEOF_UNORM)
+    if (std::distance(first, itr) < dl::SIZEOF_UNORM)
         return DLIS_INCONSISTENT;
 
-    *offset = std::distance(first, itr - DLIS_SIZEOF_UNORM);
+    *offset = std::distance(first, itr - dl::SIZEOF_UNORM);
     return DLIS_OK;
 }
 
@@ -333,7 +335,7 @@ int dlis_find_vrl(const char* from,
  * Offset of next tapemark      4
  */
 
-int dlis_tapemark(const char* buffer, int size) {
+int tapemark(const char* buffer, int size) {
     if (size < 12)
         return DLIS_INVALID_ARGS;
 
@@ -384,12 +386,12 @@ int dlis_tapemark(const char* buffer, int size) {
  * The version is a single-byte integer, and should correspond to the major
  * DLIS revision.
  */
-int dlis_vrl( const char* xs,
-              int* length,
-              int* version ) {
+int vrl( const char* xs,
+         int* length,
+         int* version ) {
 
     std::uint16_t len;
-    xs = dlis_unorm( xs, &len );
+    xs = dl::unorm_frombytes( xs, &len );
     /*
      * for now, ignore the ff. later, this might change the return value to
      * not-ok to flag protocol errors
@@ -399,7 +401,7 @@ int dlis_vrl( const char* xs,
     ++xs;
 
     std::uint8_t major;
-    dlis_ushort( xs, &major );
+    dl::ushort_frombytes( xs, &major );
 
     *length = len;
     *version = major;
@@ -421,16 +423,16 @@ int dlis_vrl( const char* xs,
  * use for vendor-specific purposes.
  */
 
-int dlis_lrsh( const char* xs,
-               int* seglen,
-               uint8_t* attrs,
-               int* type ) {
+int lrsh( const char* xs,
+          int* seglen,
+          uint8_t* attrs,
+          int* type ) {
     std::uint16_t len;
     std::uint8_t attr;
     std::uint8_t typ;
-    xs = dlis_unorm( xs, &len );
-    xs = dlis_ushort( xs, &attr );
-    dlis_ushort( xs, &typ );
+    xs = dl::unorm_frombytes( xs, &len );
+    xs = dl::ushort_frombytes( xs, &attr );
+    dl::ushort_frombytes( xs, &typ );
 
     *seglen = len;
     *attrs = attr;
@@ -439,15 +441,15 @@ int dlis_lrsh( const char* xs,
     return DLIS_OK;
 }
 
-int dlis_segment_attributes( std::uint8_t attrs,
-                             int* explicit_formatting,
-                             int* has_predecessor,
-                             int* has_successor,
-                             int* is_encrypted,
-                             int* has_encryption_packet,
-                             int* has_checksum,
-                             int* has_trailing_length,
-                             int* has_padding ) {
+int segment_attributes( std::uint8_t attrs,
+                        int* explicit_formatting,
+                        int* has_predecessor,
+                        int* has_successor,
+                        int* is_encrypted,
+                        int* has_encryption_packet,
+                        int* has_checksum,
+                        int* has_trailing_length,
+                        int* has_padding ) {
     *explicit_formatting   = attrs & DLIS_SEGATTR_EXFMTLR;
     *has_predecessor       = attrs & DLIS_SEGATTR_PREDSEG;
     *has_successor         = attrs & DLIS_SEGATTR_SUCCSEG;
@@ -459,12 +461,12 @@ int dlis_segment_attributes( std::uint8_t attrs,
     return DLIS_OK;
 }
 
-int dlis_encryption_packet_info( const char* xs,
-                                 int* len,
-                                 int* companycode ) {
+int encryption_packet_info( const char* xs,
+                            int* len,
+                            int* companycode ) {
     std::uint16_t ln, cc;
-    xs = dlis_unorm( xs, &ln );
-    dlis_unorm( xs, &cc );
+    xs = dl::unorm_frombytes( xs, &ln );
+    dl::unorm_frombytes( xs, &cc );
 
     /*
      * RP66 rqeuires there to be at least 4 bytes, which means the actual
@@ -479,13 +481,13 @@ int dlis_encryption_packet_info( const char* xs,
     return DLIS_OK;
 }
 
-int dlis_component( std::uint8_t comp, int* role ) {
+int component( std::uint8_t comp, int* role ) {
     /* just extract the three high bits for role */
     *role = comp & (1 << 7 | 1 << 6 | 1 << 5);
     return DLIS_OK;
 }
 
-int dlis_component_set( std::uint8_t desc, int role, int* type, int* name ) {
+int component_set( std::uint8_t desc, int role, int* type, int* name ) {
     switch( role ) {
         case DLIS_ROLE_RDSET:
         case DLIS_ROLE_RSET:
@@ -502,7 +504,7 @@ int dlis_component_set( std::uint8_t desc, int role, int* type, int* name ) {
     return DLIS_OK;
 }
 
-int dlis_component_object( std::uint8_t desc, int role, int* obname ) {
+int component_object( std::uint8_t desc, int role, int* obname ) {
     if( role != DLIS_ROLE_OBJECT )
         return DLIS_UNEXPECTED_VALUE;
 
@@ -510,13 +512,13 @@ int dlis_component_object( std::uint8_t desc, int role, int* obname ) {
     return DLIS_OK;
 }
 
-int dlis_component_attrib( std::uint8_t desc,
-                           int role,
-                           int* label,
-                           int* count,
-                           int* reprc,
-                           int* units,
-                           int* value ) {
+int component_attrib( std::uint8_t desc,
+                      int role,
+                      int* label,
+                      int* count,
+                      int* reprc,
+                      int* units,
+                      int* value ) {
     switch( role ) {
         case DLIS_ROLE_ATTRIB:
         case DLIS_ROLE_INVATR:
@@ -535,7 +537,7 @@ int dlis_component_attrib( std::uint8_t desc,
     return DLIS_OK;
 }
 
-const char* dlis_component_str( int tag ) {
+const char* component_str( int tag ) {
     switch( tag ) {
         case DLIS_ROLE_ABSATR: return "absent attribute";
         case DLIS_ROLE_ATTRIB: return "attribute";
@@ -549,10 +551,10 @@ const char* dlis_component_str( int tag ) {
     }
 }
 
-int dlis_trim_record_segment(uint8_t descriptor,
-                             const char* begin,
-                             const char* end,
-                             int* size) {
+int trim_record_segment(uint8_t descriptor,
+                        const char* begin,
+                        const char* end,
+                        int* size) {
     const auto dist = std::distance(begin, end);
     if (dist < 0) return DLIS_INVALID_ARGS;
 
@@ -563,7 +565,7 @@ int dlis_trim_record_segment(uint8_t descriptor,
         if (descriptor & DLIS_SEGATTR_TRAILEN) trim += 2;
         if (descriptor & DLIS_SEGATTR_PADDING) {
             std::uint8_t pad_len = 0;
-            dlis_ushort((end - 1) - trim, &pad_len);
+            dl::ushort_frombytes((end - 1) - trim, &pad_len);
             trim += pad_len;
         }
     }
@@ -577,10 +579,12 @@ int dlis_trim_record_segment(uint8_t descriptor,
     return DLIS_OK;
 }
 
+} // namespace dl
+
 namespace {
 
 /*
- * The dlis_packf function uses a dispatch table for interpreting and expanding
+ * The dl::packf function uses a dispatch table for interpreting and expanding
  * raw bytes into native C++ data types. There are 27 primary data types
  * specified by RP66 (Appendix B).
  *
@@ -589,7 +593,7 @@ namespace {
  * for all RP66 data types:
  *
  * float f;
- * src = dlis_fsingl( src, &f );
+ * src = dl::fsingl_frombytes( src, &f );
  * memcpy( dst, &f, 4 );
  * dst += 4;
  */
@@ -707,11 +711,11 @@ noexcept (true)
     return interpret( cur, f, init< typename bless< Args >::type >() ... );
 }
 
-cursor packf(const char* fmt, const char* src, char* dst) noexcept (true) {
+cursor packer(const char* fmt, const char* src, char* dst) noexcept (true) {
     /*
-     * The public dlis_packf function assumes both src and dst are valid
-     * pointers, but the worker packf function has no such restriction. In
-     * addition, packflen is *essentially* packf, but it outputs the
+     * The public dl::packf function assumes both src and dst are valid
+     * pointers, but the worker packer function has no such restriction. In
+     * addition, dl::packflen is *essentially* dl::packf, but it outputs the
      * byte-count, instead of doing writes.
      *
      * This function implements both these operations
@@ -721,45 +725,45 @@ cursor packf(const char* fmt, const char* src, char* dst) noexcept (true) {
     std::vector< char > ascii;
     while (true) {
         switch (*fmt++) {
-            case DLIS_FMT_EOL:
+            case dl::FMT_EOL:
                 return cur;
 
-            case DLIS_FMT_FSHORT: cur = interpret(cur, dlis_fshort); break;
-            case DLIS_FMT_FSINGL: cur = interpret(cur, dlis_fsingl); break;
-            case DLIS_FMT_FSING1: cur = interpret(cur, dlis_fsing1); break;
-            case DLIS_FMT_FSING2: cur = interpret(cur, dlis_fsing2); break;
-            case DLIS_FMT_ISINGL: cur = interpret(cur, dlis_isingl); break;
-            case DLIS_FMT_VSINGL: cur = interpret(cur, dlis_vsingl); break;
-            case DLIS_FMT_FDOUBL: cur = interpret(cur, dlis_fdoubl); break;
-            case DLIS_FMT_FDOUB1: cur = interpret(cur, dlis_fdoub1); break;
-            case DLIS_FMT_FDOUB2: cur = interpret(cur, dlis_fdoub2); break;
-            case DLIS_FMT_CSINGL: cur = interpret(cur, dlis_csingl); break;
-            case DLIS_FMT_CDOUBL: cur = interpret(cur, dlis_cdoubl); break;
-            case DLIS_FMT_SSHORT: cur = interpret(cur, dlis_sshort); break;
-            case DLIS_FMT_SNORM:  cur = interpret(cur, dlis_snorm ); break;
-            case DLIS_FMT_SLONG:  cur = interpret(cur, dlis_slong ); break;
-            case DLIS_FMT_USHORT: cur = interpret(cur, dlis_ushort); break;
-            case DLIS_FMT_UNORM:  cur = interpret(cur, dlis_unorm ); break;
-            case DLIS_FMT_ULONG:  cur = interpret(cur, dlis_ulong ); break;
-            case DLIS_FMT_UVARI:  cur = interpret(cur, dlis_uvari ); break;
-            case DLIS_FMT_IDENT:  cur = interpret(cur, dlis_ident ); break;
-            case DLIS_FMT_DTIME:  cur = interpret(cur, dlis_dtime ); break;
-            case DLIS_FMT_ORIGIN: cur = interpret(cur, dlis_origin); break;
-            case DLIS_FMT_OBNAME: cur = interpret(cur, dlis_obname); break;
-            case DLIS_FMT_OBJREF: cur = interpret(cur, dlis_objref); break;
-            case DLIS_FMT_ATTREF: cur = interpret(cur, dlis_attref); break;
-            case DLIS_FMT_STATUS: cur = interpret(cur, dlis_status); break;
-            case DLIS_FMT_UNITS:  cur = interpret(cur, dlis_units ); break;
+            case dl::FMT_FSHORT: cur = interpret(cur, dl::fshort_frombytes); break;
+            case dl::FMT_FSINGL: cur = interpret(cur, dl::fsingl_frombytes); break;
+            case dl::FMT_FSING1: cur = interpret(cur, dl::fsing1_frombytes); break;
+            case dl::FMT_FSING2: cur = interpret(cur, dl::fsing2_frombytes); break;
+            case dl::FMT_ISINGL: cur = interpret(cur, dl::isingl_frombytes); break;
+            case dl::FMT_VSINGL: cur = interpret(cur, dl::vsingl_frombytes); break;
+            case dl::FMT_FDOUBL: cur = interpret(cur, dl::fdoubl_frombytes); break;
+            case dl::FMT_FDOUB1: cur = interpret(cur, dl::fdoub1_frombytes); break;
+            case dl::FMT_FDOUB2: cur = interpret(cur, dl::fdoub2_frombytes); break;
+            case dl::FMT_CSINGL: cur = interpret(cur, dl::csingl_frombytes); break;
+            case dl::FMT_CDOUBL: cur = interpret(cur, dl::cdoubl_frombytes); break;
+            case dl::FMT_SSHORT: cur = interpret(cur, dl::sshort_frombytes); break;
+            case dl::FMT_SNORM:  cur = interpret(cur, dl::snorm_frombytes ); break;
+            case dl::FMT_SLONG:  cur = interpret(cur, dl::slong_frombytes ); break;
+            case dl::FMT_USHORT: cur = interpret(cur, dl::ushort_frombytes); break;
+            case dl::FMT_UNORM:  cur = interpret(cur, dl::unorm_frombytes ); break;
+            case dl::FMT_ULONG:  cur = interpret(cur, dl::ulong_frombytes ); break;
+            case dl::FMT_UVARI:  cur = interpret(cur, dl::uvari_frombytes ); break;
+            case dl::FMT_IDENT:  cur = interpret(cur, dl::ident_frombytes ); break;
+            case dl::FMT_DTIME:  cur = interpret(cur, dl::dtime_frombytes ); break;
+            case dl::FMT_ORIGIN: cur = interpret(cur, dl::origin_frombytes); break;
+            case dl::FMT_OBNAME: cur = interpret(cur, dl::obname_frombytes); break;
+            case dl::FMT_OBJREF: cur = interpret(cur, dl::objref_frombytes); break;
+            case dl::FMT_ATTREF: cur = interpret(cur, dl::attref_frombytes); break;
+            case dl::FMT_STATUS: cur = interpret(cur, dl::status_frombytes); break;
+            case dl::FMT_UNITS:  cur = interpret(cur, dl::units_frombytes ); break;
 
-            case DLIS_FMT_ASCII: {
+            case dl::FMT_ASCII: {
                 /*
                  * ascii is variable-length and practically unbounded, so it
                  * needs dynamic memory to be correct.
                  */
                 std::int32_t len;
-                dlis_ascii(cur.src, &len, nullptr);
+                dl::ascii_frombytes(cur.src, &len, nullptr);
                 ascii.resize(len);
-                cur.src = dlis_ascii(cur.src, &len, ascii.data());
+                cur.src = dl::ascii_frombytes(cur.src, &len, ascii.data());
                 const auto written = pack(cur.dst, &len, ascii.data());
                 cur.advance(written);
                 break;
@@ -771,15 +775,17 @@ cursor packf(const char* fmt, const char* src, char* dst) noexcept (true) {
     }
 }
 
-}
+} // namespace
 
-int dlis_packf( const char* fmt, const void* src, void* dst ) {
+namespace dl {
+
+int packf( const char* fmt, const void* src, void* dst ) {
     assert(src);
     assert(dst);
 
     auto csrc = static_cast< const char* >(src);
     auto cdst = static_cast< char* >(dst);
-    const auto cur = packf(fmt, csrc, cdst);
+    const auto cur = packer(fmt, csrc, cdst);
 
     if (cur.invalid())
         return DLIS_UNEXPECTED_VALUE;
@@ -787,9 +793,9 @@ int dlis_packf( const char* fmt, const void* src, void* dst ) {
     return DLIS_OK;
 }
 
-int dlis_packflen(const char* fmt, const void* src, int* nread, int* nwrite) {
+int packflen(const char* fmt, const void* src, int* nread, int* nwrite) {
     auto csrc = static_cast< const char* >(src);
-    const auto cur = packf(fmt, csrc, nullptr);
+    const auto cur = packer(fmt, csrc, nullptr);
 
     if (cur.invalid())
         return DLIS_UNEXPECTED_VALUE;
@@ -799,47 +805,47 @@ int dlis_packflen(const char* fmt, const void* src, int* nread, int* nwrite) {
     return DLIS_OK;
 }
 
-int dlis_pack_varsize(const char* fmt, int* src, int* dst) {
+int pack_varsize(const char* fmt, int* src, int* dst) {
     int srcvar = 0;
     while (true) {
         switch (*fmt++) {
-            case DLIS_FMT_EOL:
+            case dl::FMT_EOL:
                 if (src) *src = srcvar;
                 if (dst) *dst = 0;
                 return DLIS_OK;
 
-            case DLIS_FMT_FSHORT:
-            case DLIS_FMT_FSINGL:
-            case DLIS_FMT_FSING1:
-            case DLIS_FMT_FSING2:
-            case DLIS_FMT_ISINGL:
-            case DLIS_FMT_VSINGL:
-            case DLIS_FMT_FDOUBL:
-            case DLIS_FMT_FDOUB1:
-            case DLIS_FMT_FDOUB2:
-            case DLIS_FMT_CSINGL:
-            case DLIS_FMT_CDOUBL:
-            case DLIS_FMT_SSHORT:
-            case DLIS_FMT_SNORM:
-            case DLIS_FMT_SLONG:
-            case DLIS_FMT_USHORT:
-            case DLIS_FMT_UNORM:
-            case DLIS_FMT_ULONG:
-            case DLIS_FMT_DTIME:
-            case DLIS_FMT_STATUS:
+            case dl::FMT_FSHORT:
+            case dl::FMT_FSINGL:
+            case dl::FMT_FSING1:
+            case dl::FMT_FSING2:
+            case dl::FMT_ISINGL:
+            case dl::FMT_VSINGL:
+            case dl::FMT_FDOUBL:
+            case dl::FMT_FDOUB1:
+            case dl::FMT_FDOUB2:
+            case dl::FMT_CSINGL:
+            case dl::FMT_CDOUBL:
+            case dl::FMT_SSHORT:
+            case dl::FMT_SNORM:
+            case dl::FMT_SLONG:
+            case dl::FMT_USHORT:
+            case dl::FMT_UNORM:
+            case dl::FMT_ULONG:
+            case dl::FMT_DTIME:
+            case dl::FMT_STATUS:
                 break;
 
-            case DLIS_FMT_ORIGIN:
-            case DLIS_FMT_UVARI:
+            case dl::FMT_ORIGIN:
+            case dl::FMT_UVARI:
                 srcvar = 1;
                 break;
 
-            case DLIS_FMT_IDENT:
-            case DLIS_FMT_ASCII:
-            case DLIS_FMT_OBNAME:
-            case DLIS_FMT_OBJREF:
-            case DLIS_FMT_ATTREF:
-            case DLIS_FMT_UNITS:
+            case dl::FMT_IDENT:
+            case dl::FMT_ASCII:
+            case dl::FMT_OBNAME:
+            case dl::FMT_OBJREF:
+            case dl::FMT_ATTREF:
+            case dl::FMT_UNITS:
                 if (src) *src = 1;
                 if (dst) *dst = 1;
                 return DLIS_OK;
@@ -850,58 +856,58 @@ int dlis_pack_varsize(const char* fmt, int* src, int* dst) {
     }
 }
 
-int dlis_pack_size(const char* fmt, int* src, int* dst) {
+int pack_size(const char* fmt, int* src, int* dst) {
     bool varsrc = false;
     int correction = 0;
     int size = 0;
     while (true) {
         switch (*fmt++) {
-            case DLIS_FMT_EOL:
+            case dl::FMT_EOL:
                 if (varsrc) correction = size;
                 if (src) *src = size - correction;
                 if (dst) *dst = size;
                 return DLIS_OK;
 
-            case DLIS_FMT_FSHORT:
-                correction += sizeof(float) - DLIS_SIZEOF_FSHORT;
+            case dl::FMT_FSHORT:
+                correction += sizeof(float) - dl::SIZEOF_FSHORT;
                 size += sizeof(float);
                 break;
 
-            case DLIS_FMT_DTIME:
-                correction +=  8 * sizeof(int) - DLIS_SIZEOF_DTIME;
+            case dl::FMT_DTIME:
+                correction +=  8 * sizeof(int) - dl::SIZEOF_DTIME;
                 size +=  8 * sizeof(int);
                 break;
 
-            case DLIS_FMT_FSINGL: size += DLIS_SIZEOF_FSINGL; break;
-            case DLIS_FMT_FSING1: size += DLIS_SIZEOF_FSING1; break;
-            case DLIS_FMT_FSING2: size += DLIS_SIZEOF_FSING2; break;
-            case DLIS_FMT_ISINGL: size += DLIS_SIZEOF_ISINGL; break;
-            case DLIS_FMT_VSINGL: size += DLIS_SIZEOF_VSINGL; break;
-            case DLIS_FMT_FDOUBL: size += DLIS_SIZEOF_FDOUBL; break;
-            case DLIS_FMT_FDOUB1: size += DLIS_SIZEOF_FDOUB1; break;
-            case DLIS_FMT_FDOUB2: size += DLIS_SIZEOF_FDOUB2; break;
-            case DLIS_FMT_CSINGL: size += DLIS_SIZEOF_CSINGL; break;
-            case DLIS_FMT_CDOUBL: size += DLIS_SIZEOF_CDOUBL; break;
-            case DLIS_FMT_SSHORT: size += DLIS_SIZEOF_SSHORT; break;
-            case DLIS_FMT_SNORM:  size += DLIS_SIZEOF_SNORM;  break;
-            case DLIS_FMT_SLONG:  size += DLIS_SIZEOF_SLONG;  break;
-            case DLIS_FMT_USHORT: size += DLIS_SIZEOF_USHORT; break;
-            case DLIS_FMT_UNORM:  size += DLIS_SIZEOF_UNORM;  break;
-            case DLIS_FMT_ULONG:  size += DLIS_SIZEOF_ULONG;  break;
-            case DLIS_FMT_STATUS: size += DLIS_SIZEOF_STATUS; break;
+            case dl::FMT_FSINGL: size += dl::SIZEOF_FSINGL; break;
+            case dl::FMT_FSING1: size += dl::SIZEOF_FSING1; break;
+            case dl::FMT_FSING2: size += dl::SIZEOF_FSING2; break;
+            case dl::FMT_ISINGL: size += dl::SIZEOF_ISINGL; break;
+            case dl::FMT_VSINGL: size += dl::SIZEOF_VSINGL; break;
+            case dl::FMT_FDOUBL: size += dl::SIZEOF_FDOUBL; break;
+            case dl::FMT_FDOUB1: size += dl::SIZEOF_FDOUB1; break;
+            case dl::FMT_FDOUB2: size += dl::SIZEOF_FDOUB2; break;
+            case dl::FMT_CSINGL: size += dl::SIZEOF_CSINGL; break;
+            case dl::FMT_CDOUBL: size += dl::SIZEOF_CDOUBL; break;
+            case dl::FMT_SSHORT: size += dl::SIZEOF_SSHORT; break;
+            case dl::FMT_SNORM:  size += dl::SIZEOF_SNORM;  break;
+            case dl::FMT_SLONG:  size += dl::SIZEOF_SLONG;  break;
+            case dl::FMT_USHORT: size += dl::SIZEOF_USHORT; break;
+            case dl::FMT_UNORM:  size += dl::SIZEOF_UNORM;  break;
+            case dl::FMT_ULONG:  size += dl::SIZEOF_ULONG;  break;
+            case dl::FMT_STATUS: size += dl::SIZEOF_STATUS; break;
 
-            case DLIS_FMT_ORIGIN:
-            case DLIS_FMT_UVARI:
+            case dl::FMT_ORIGIN:
+            case dl::FMT_UVARI:
                 varsrc = true;
                 size += sizeof(std::int32_t);
                 break;
 
-            case DLIS_FMT_IDENT:
-            case DLIS_FMT_ASCII:
-            case DLIS_FMT_OBNAME:
-            case DLIS_FMT_OBJREF:
-            case DLIS_FMT_ATTREF:
-            case DLIS_FMT_UNITS:
+            case dl::FMT_IDENT:
+            case dl::FMT_ASCII:
+            case dl::FMT_OBNAME:
+            case dl::FMT_OBJREF:
+            case dl::FMT_ATTREF:
+            case dl::FMT_UNITS:
                 return DLIS_INCONSISTENT;
 
             default:
@@ -910,13 +916,13 @@ int dlis_pack_size(const char* fmt, int* src, int* dst) {
     }
 }
 
-int dlis_object_fingerprint_size(std::int32_t type_len,
-                                 const char*,
-                                 std::int32_t id_len,
-                                 const char*,
-                                 std::int32_t origin,
-                                 std::uint8_t copynum,
-                                 int* size) {
+int object_fingerprint_size(std::int32_t type_len,
+                            const char*,
+                            std::int32_t id_len,
+                            const char*,
+                            std::int32_t origin,
+                            std::uint8_t copynum,
+                            int* size) {
 
     if (origin < 0)    return DLIS_INVALID_ARGS;
     if (type_len <= 0) return DLIS_INVALID_ARGS;
@@ -933,13 +939,13 @@ int dlis_object_fingerprint_size(std::int32_t type_len,
     return DLIS_OK;
 }
 
-int dlis_object_fingerprint(std::int32_t type_len,
-                            const char* type,
-                            std::int32_t id_len,
-                            const char* id,
-                            std::int32_t origin,
-                            std::uint8_t copynum,
-                            char* fingerprint) {
+int object_fingerprint(std::int32_t type_len,
+                       const char* type,
+                       std::int32_t id_len,
+                       const char* id,
+                       std::int32_t origin,
+                       std::uint8_t copynum,
+                       char* fingerprint) {
 
     if (type_len <= 0) return DLIS_INVALID_ARGS;
     if (id_len < 0)    return DLIS_INVALID_ARGS;
@@ -964,3 +970,5 @@ int dlis_object_fingerprint(std::int32_t type_len,
 
     return DLIS_OK;
 }
+
+} // namespace dl
