@@ -49,6 +49,37 @@ commands:
             make
             <<#parameters.sudo >> sudo <</parameters.sudo >> make install
 
+  install_stretch:
+    parameters:
+      sudo:
+        type: boolean
+        default: false
+      extra:
+        type: string
+        default: ""
+    steps:
+      - run:
+          name: python
+          command: |
+            <<#parameters.sudo >> sudo <</parameters.sudo >> apt-get update
+            <<#parameters.sudo >> sudo <</parameters.sudo >> apt-get install \
+            -y cmake g++ << parameters.extra >>
+      - run:
+          name: install python 3.6.8
+          command: |
+            wget https://www.python.org/ftp/python/3.6.8/Python-3.6.8.tgz
+            tar xvf Python-3.6.8.tgz
+            cd Python-3.6.8
+            ./configure --enable-optimizations
+            make -j8
+            <<#parameters.sudo >> sudo <</parameters.sudo >> make altinstall
+      - run:
+          name: run test
+          command: |
+              python3.6 -m pip install dlisio
+              python3.6 dealloc.py
+
+
   python_build:
     parameters:
       docs:
@@ -82,6 +113,7 @@ commands:
           command: |
             cd python
             python setup.py build_ext --inplace install --user test
+            python --version
 
   cmake_build:
     description: dlisio build steps
@@ -162,6 +194,14 @@ jobs:
       - pull_submodules
       - cmake_build:
           scan: scan-build --status-bugs
+
+  stretch:
+    docker:
+      - image: debian:stretch
+    steps:
+      - checkout
+      - install_stretch:
+          extra: make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev  libncursesw5-dev xz-utils tk-dev
 
   cppcheck:
     docker:
@@ -460,6 +500,7 @@ workflows:
       - gcc
       - clang
       - debug
+      - stretch
 
   static-analysis:
     jobs:
