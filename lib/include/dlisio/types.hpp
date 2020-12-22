@@ -164,42 +164,46 @@ void* attref_tobytes( void*, uint8_t ident1_len,
 
 void* units_tobytes( void*, uint8_t len, const char* in );
 
+enum class representation_code : std::uint8_t {
+    fshort = 1,  // Low precision floating point
+    fsingl = 2,  // IEEE single precision floating point
+    fsing1 = 3,  // Validated single precision floating point
+    fsing2 = 4,  // Two-way validated single precision floating point
+    isingl = 5,  // IBM single precision floating point
+    vsingl = 6,  // VAX single precision floating point
+    fdoubl = 7,  // IEEE double precision floating point
+    fdoub1 = 8,  // Validated double precision floating point
+    fdoub2 = 9,  // Two-way validated double precision floating point
+    csingl = 10, // Single precision complex
+    cdoubl = 11, // Double precision complex
+    sshort = 12, // Short signed integer
+    snorm  = 13, // Normal signed integer
+    slong  = 14, // Long signed integer
+    ushort = 15, // Short unsigned integer
+    unorm  = 16, // Normal unsigned integer
+    ulong  = 17, // Long unsigned integer
+    uvari  = 18, // Variable-length unsigned integer
+    ident  = 19, // Variable-length identifier
+    ascii  = 20, // Variable-length ASCII character string
+    dtime  = 21, // Date and time
+    origin = 22, // Origin reference
+    obname = 23, // Object name
+    objref = 24, // Object reference
+    attref = 25, // Attribute reference
+    status = 26, // Boolean status
+    units  = 27, // Units expression
+    undef  = 66, // Undefined value
+};
+
 /*
  * get the size (in bytes) of a particular data type. Expects a UNORM or
  * similar type code.
  *
- * Returns a negative value passed an invalid type code.
+ * Returns a negative value passed an invalid type code, ie.
+ * representation_code::undef
  */
-int sizeof_type(int);
 
-constexpr int FSHORT = 1;  // Low precision floating point
-constexpr int FSINGL = 2;  // IEEE single precision floating point
-constexpr int FSING1 = 3;  // Validated single precision floating point
-constexpr int FSING2 = 4;  // Two-way validated single precision floating point
-constexpr int ISINGL = 5;  // IBM single precision floating point
-constexpr int VSINGL = 6;  // VAX single precision floating point
-constexpr int FDOUBL = 7;  // IEEE double precision floating point
-constexpr int FDOUB1 = 8;  // Validated double precision floating point
-constexpr int FDOUB2 = 9;  // Two-way validated double precision floating point
-constexpr int CSINGL = 10; // Single precision complex
-constexpr int CDOUBL = 11; // Double precision complex
-constexpr int SSHORT = 12; // Short signed integer
-constexpr int SNORM  = 13; // Normal signed integer
-constexpr int SLONG  = 14; // Long signed integer
-constexpr int USHORT = 15; // Short unsigned integer
-constexpr int UNORM  = 16; // Normal unsigned integer
-constexpr int ULONG  = 17; // Long unsigned integer
-constexpr int UVARI  = 18; // Variable-length unsigned integer
-constexpr int IDENT  = 19; // Variable-length identifier
-constexpr int ASCII  = 20; // Variable-length ASCII character string
-constexpr int DTIME  = 21; // Date and time
-constexpr int ORIGIN = 22; // Origin reference
-constexpr int OBNAME = 23; // Object name
-constexpr int OBJREF = 24; // Object reference
-constexpr int ATTREF = 25; // Attribute reference
-constexpr int STATUS = 26; // Boolean status
-constexpr int UNITS  = 27; // Units expression
-constexpr int UNDEF  = 66; // Undefined value
+int sizeof_type(representation_code);
 
 constexpr int VARIABLE_LENGTH = 0;
 

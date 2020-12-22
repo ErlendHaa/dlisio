@@ -17,37 +17,6 @@
 
 namespace dl {
 
-enum class representation_code : std::uint8_t {
-    fshort = FSHORT,
-    fsingl = FSINGL,
-    fsing1 = FSING1,
-    fsing2 = FSING2,
-    isingl = ISINGL,
-    vsingl = VSINGL,
-    fdoubl = FDOUBL,
-    fdoub1 = FDOUB1,
-    fdoub2 = FDOUB2,
-    csingl = CSINGL,
-    cdoubl = CDOUBL,
-    sshort = SSHORT,
-    snorm  = SNORM,
-    slong  = SLONG,
-    ushort = USHORT,
-    unorm  = UNORM,
-    ulong  = ULONG,
-    uvari  = UVARI,
-    ident  = IDENT,
-    ascii  = ASCII,
-    dtime  = DTIME,
-    origin = ORIGIN,
-    obname = OBNAME,
-    objref = OBJREF,
-    attref = ATTREF,
-    status = STATUS,
-    units  = UNITS,
-    undef  = UNDEF,
-};
-
 /*
  * It's _very_ often necessary to access the raw underlying type of the strong
  * type aliases for comparisons, literals, or conversions. dl::decay inspects

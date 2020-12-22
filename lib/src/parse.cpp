@@ -441,10 +441,13 @@ const char* cast( const char* xs,
     dl::ushort x{ 0 };
     xs = cast( xs, x );
 
-    if (x < dl::FSHORT || x > dl::UNITS) {
-        reprc = dl::representation_code::undef;
+    using rpc = dl::representation_code;
+    constexpr std::uint8_t fshort = static_cast< std::uint8_t >(rpc::fshort);
+    constexpr std::uint8_t units  = static_cast< std::uint8_t >(rpc::units);
+    if (x < fshort || x > units) {
+        reprc = rpc::undef;
     } else {
-        reprc = static_cast< dl::representation_code >( x );
+        reprc = static_cast< rpc >( x );
     }
     return xs;
 }

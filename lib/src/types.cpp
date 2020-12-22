@@ -677,8 +677,10 @@ void* units_tobytes( void* xs, std::uint8_t len, const char* in ) {
     return (char*)ys + len;
 }
 
-int sizeof_type( int x ) {
-    if ( x < FSHORT || x > UNITS ) return -1;
+int sizeof_type( dl::representation_code x ) {
+    using rpc = dl::representation_code;
+    if (x < rpc::fshort || x > rpc::units)
+        return -1;
 
     constexpr const int sizes[] = {
         dl::SIZEOF_FSHORT,
@@ -710,7 +712,7 @@ int sizeof_type( int x ) {
         dl::SIZEOF_UNITS,
     };
 
-    return sizes[ x - 1 ];
+    return sizes[ static_cast< std::uint8_t >(x) - 1 ];
 }
 
 } // namespace dl
