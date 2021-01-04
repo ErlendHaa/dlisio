@@ -4,10 +4,14 @@
 #include <cstring>
 #include <limits>
 #include <type_traits>
+#include <utility>
+#include <vector>
+#include <stdexcept>
 
 #include <endianness/endianness.h>
 
 #include <dlisio/types.hpp>
+#include <dlisio/dlisio.hpp>
 
 namespace {
 
@@ -713,6 +717,387 @@ int sizeof_type( dl::representation_code x ) {
     };
 
     return sizes[ static_cast< std::uint8_t >(x) - 1 ];
+}
+
+bool dl::dtime::operator == (const dl::dtime& o) const noexcept (true) {
+    return this->Y  == o.Y
+        && this->TZ == o.TZ
+        && this->M  == o.M
+        && this->D  == o.D
+        && this->H  == o.H
+        && this->MN == o.MN
+        && this->S  == o.S
+        && this->MS == o.MS
+    ;
+}
+
+bool dl::dtime::operator != (const dl::dtime& o) const noexcept (true) {
+    return !(*this == o);
+}
+
+bool dl::obname::operator == ( const dl::obname& rhs ) const noexcept (true) {
+    return this->origin == rhs.origin
+        && this->copy == rhs.copy
+        && this->id == rhs.id;
+}
+
+bool dl::obname::operator != (const dl::obname& o) const noexcept (true) {
+    return !(*this == o);
+}
+
+dl::ident dl::obname::fingerprint(const std::string& type)
+const noexcept (false) {
+    const auto& origin = dl::decay(this->origin);
+    const auto& copy = dl::decay(this->copy);
+    const auto& id = dl::decay(this->id);
+
+    int size;
+    auto err = dl::object_fingerprint_size(type.size(),
+                                           type.data(),
+                                           id.size(),
+                                           id.data(),
+                                           origin,
+                                           copy,
+                                           &size);
+
+    if (err)
+        throw std::invalid_argument("invalid argument");
+
+    auto str = std::vector< char >(size);
+    err = dl::object_fingerprint(type.size(),
+                                 type.data(),
+                                 id.size(),
+                                 id.data(),
+                                 origin,
+                                 copy,
+                                 str.data());
+
+    if (err)
+        throw std::runtime_error("fingerprint: something went wrong");
+
+    return dl::ident( std::string(str.begin(), str.end()) );
+}
+
+bool dl::objref::operator == ( const dl::objref& rhs ) const noexcept( true ) {
+    return this->type == rhs.type
+        && this->name == rhs.name;
+}
+
+bool dl::objref::operator != (const dl::objref& o) const noexcept (true) {
+    return !(*this == o);
+}
+
+dl::ident dl::objref::fingerprint() const noexcept (false) {
+    return this->name.fingerprint(dl::decay(this->type));
+}
+
+bool dl::attref::operator == ( const dl::attref& rhs ) const noexcept( true ) {
+    return this->type == rhs.type
+        && this->name == rhs.name
+        && this->label== rhs.label;
+}
+
+bool dl::attref::operator != (const dl::attref& o) const noexcept (true) {
+    return !(*this == o);
+}
+
+using std::swap;
+const char* cast( const char* xs, dl::sshort& i ) noexcept (true) {
+    std::int8_t x;
+    xs = dl::sshort_frombytes( xs, &x );
+
+    dl::sshort tmp{ x };
+    swap( i, tmp );
+
+    return xs;
+}
+
+const char* cast( const char* xs, dl::snorm& i ) noexcept (true) {
+    std::int16_t x;
+    xs = dl::snorm_frombytes( xs, &x );
+
+    dl::snorm tmp{ x };
+    swap( i, tmp );
+
+    return xs;
+}
+
+const char* cast( const char* xs, dl::slong& i ) noexcept (true) {
+    std::int32_t x;
+    xs = dl::slong_frombytes( xs, &x );
+
+    dl::slong tmp{ x };
+    swap( i, tmp );
+    return xs;
+}
+
+const char* cast( const char* xs, dl::ushort& i ) noexcept (true) {
+    std::uint8_t x;
+    xs = dl::ushort_frombytes( xs, &x );
+
+    dl::ushort tmp{ x };
+    swap( tmp, i );
+    return xs;
+}
+
+
+const char* cast( const char* xs, dl::unorm& i ) noexcept (true) {
+    std::uint16_t x;
+    xs = dl::unorm_frombytes( xs, &x );
+
+    dl::unorm tmp{ x };
+    swap( tmp, i );
+    return xs;
+}
+
+const char* cast( const char* xs, dl::ulong& i ) noexcept (true) {
+    std::uint32_t x;
+    xs = dl::ulong_frombytes( xs, &x );
+    i = dl::ulong{ x };
+    return xs;
+}
+
+const char* cast( const char* xs, dl::uvari& i ) noexcept (true) {
+    std::int32_t x;
+    xs = dl::uvari_frombytes( xs, &x );
+    i = dl::uvari{ x };
+    return xs;
+}
+
+const char* cast( const char* xs, dl::fshort& f ) noexcept (true) {
+    float x;
+    xs = dl::fshort_frombytes( xs, &x );
+    f = dl::fshort{ x };
+    return xs;
+}
+
+const char* cast( const char* xs, dl::fsingl& f ) noexcept (true) {
+    float x;
+    xs = dl::fsingl_frombytes( xs, &x );
+    f = dl::fsingl{ x };
+    return xs;
+}
+
+const char* cast( const char* xs, dl::fdoubl& f ) noexcept (true) {
+    double x;
+    xs = dl::fdoubl_frombytes( xs, &x );
+    f = dl::fdoubl{ x };
+    return xs;
+}
+
+const char* cast( const char* xs, dl::fsing1& f ) noexcept (true) {
+    float v, a;
+    xs = dl::fsing1_frombytes( xs, &v, &a );
+    f = dl::fsing1{ v, a };
+    return xs;
+}
+
+const char* cast( const char* xs, dl::fsing2& f ) noexcept (true) {
+    float v, a, b;
+    xs = dl::fsing2_frombytes( xs, &v, &a, &b );
+    f = dl::fsing2{ v, a, b };
+    return xs;
+}
+
+const char* cast( const char* xs, dl::fdoub1& f ) noexcept (true) {
+    double v, a;
+    xs = dl::fdoub1_frombytes( xs, &v, &a );
+    f = dl::fdoub1{ v, a };
+    return xs;
+}
+
+const char* cast( const char* xs, dl::fdoub2& f ) noexcept (true) {
+    double v, a, b;
+    xs = dl::fdoub2_frombytes( xs, &v, &a, &b );
+    f = dl::fdoub2{ v, a, b };
+    return xs;
+}
+
+const char* cast( const char* xs, dl::csingl& f ) noexcept (true) {
+    float re, im;
+    xs = dl::csingl_frombytes( xs, &re, &im );
+    f = dl::csingl{ std::complex< float >{ re, im } };
+    return xs;
+}
+
+const char* cast( const char* xs, dl::cdoubl& f ) noexcept (true) {
+    double re, im;
+    xs = dl::cdoubl_frombytes( xs, &re, &im );
+    f = dl::cdoubl{ std::complex< double >{ re, im } };
+    return xs;
+}
+
+const char* cast( const char* xs, dl::isingl& f ) noexcept (true) {
+    float x;
+    xs = dl::isingl_frombytes( xs, &x );
+    f = dl::isingl{ x };
+    return xs;
+}
+
+const char* cast( const char* xs, dl::vsingl& f ) noexcept (true) {
+    float x;
+    xs = dl::vsingl_frombytes( xs, &x );
+    f = dl::vsingl{ x };
+    return xs;
+}
+
+const char* cast( const char* xs, dl::status& s ) noexcept (true) {
+    dl::status::value_type x;
+    xs = dl::status_frombytes( xs, &x );
+    s = dl::status{ x };
+    return xs;
+}
+
+namespace {
+
+template <typename T>
+const char* parse_ident( const char* xs, T& out ) noexcept (false) {
+    char str[ 256 ];
+    std::int32_t len;
+
+    xs = dl::ident_frombytes( xs, &len, str );
+
+    T tmp{ std::string{ str, str + len } };
+    swap( out, tmp );
+    return xs;
+}
+
+}
+
+const char* cast( const char* xs, dl::ident& id ) noexcept (false) {
+    return parse_ident( xs, id );
+}
+
+const char* cast( const char* xs, dl::units& id ) noexcept (false) {
+    return parse_ident( xs, id );
+}
+
+const char* cast( const char* xs, dl::ascii& ascii ) noexcept (false) {
+    std::vector< char > str;
+    std::int32_t len;
+
+    dl::ascii_frombytes( xs, &len, nullptr );
+    str.resize( len );
+    xs = dl::ascii_frombytes( xs, &len, str.data() );
+
+    dl::ascii tmp{ std::string{ str.begin(), str.end() } };
+    swap( ascii, tmp );
+    return xs;
+}
+
+const char* cast( const char* xs, dl::origin& origin ) noexcept (true) {
+    dl::origin::value_type x;
+    xs = dl::origin_frombytes( xs, &x );
+    origin = dl::origin{ x };
+    return xs;
+}
+
+const char* cast( const char* xs, dl::obname& obname ) noexcept (false) {
+    char str[ 256 ];
+    std::int32_t len;
+
+    std::int32_t orig;
+    std::uint8_t copy;
+
+    xs = dl::obname_frombytes( xs, &orig, &copy, &len, str );
+
+    dl::obname tmp{ dl::origin{ orig },
+                    dl::ushort{ copy },
+                    dl::ident{ std::string{ str, str + len } } };
+    swap( obname, tmp );
+    return xs;
+}
+
+const char* cast( const char* xs, dl::objref& objref ) noexcept (false) {
+    char iden[ 256 ];
+    char name[ 256 ];
+    std::int32_t ident_len;
+    std::int32_t origin;
+    std::uint8_t copy_number;
+    std::int32_t obname_len;
+
+    xs = dl::objref_frombytes( xs, &ident_len,
+                                   iden,
+                                   &origin,
+                                   &copy_number,
+                                   &obname_len,
+                                   name );
+
+    dl::objref tmp{ dl::ident{ std::string{ iden, iden + ident_len } },
+                    dl::obname{
+                        dl::origin{ origin },
+                        dl::ushort{ copy_number },
+                        dl::ident{ std::string{ name, name + obname_len } }
+                    }
+    };
+
+    swap( objref, tmp );
+    return xs;
+}
+
+const char* cast( const char* xs, dl::attref& attref ) noexcept (false) {
+    char id1[ 256 ];
+    char obj[ 256 ];
+    char id2[ 256 ];
+    std::int32_t ident1_len;
+    std::int32_t origin;
+    std::uint8_t copy_number;
+    std::int32_t obname_len;
+    std::int32_t ident2_len;
+
+    xs = dl::attref_frombytes( xs, &ident1_len,
+                                   id1,
+                                   &origin,
+                                   &copy_number,
+                                   &obname_len,
+                                   obj,
+                                   &ident2_len,
+                                   id2 );
+
+    dl::attref tmp{ dl::ident{ std::string{ id1, id1 + ident1_len } },
+                    dl::obname{
+                        dl::origin{ origin },
+                        dl::ushort{ copy_number },
+                        dl::ident{ std::string{ obj, obj + obname_len } }
+                    },
+                    dl::ident{ std::string{ id2, id2 + ident2_len } }
+    };
+
+    swap( attref, tmp );
+    return xs;
+}
+
+
+const char* cast( const char* xs, dl::dtime& dtime ) noexcept (true) {
+    dl::dtime dt;
+    xs = dl::dtime_frombytes( xs, &dt.Y,
+                                  &dt.TZ,
+                                  &dt.M,
+                                  &dt.D,
+                                  &dt.H,
+                                  &dt.MN,
+                                  &dt.S,
+                                  &dt.MS );
+    dt.Y += dl::YEAR_ZERO;
+    swap( dtime, dt );
+    return xs;
+}
+
+const char* cast( const char* xs,
+                  dl::representation_code& reprc ) noexcept (false) {
+
+    dl::ushort x{ 0 };
+    xs = cast( xs, x );
+
+    using rpc = dl::representation_code;
+    constexpr std::uint8_t fshort = static_cast< std::uint8_t >(rpc::fshort);
+    constexpr std::uint8_t units  = static_cast< std::uint8_t >(rpc::units);
+    if (x < fshort || x > units) {
+        reprc = rpc::undef;
+    } else {
+        reprc = static_cast< rpc >( x );
+    }
+    return xs;
 }
 
 } // namespace dl

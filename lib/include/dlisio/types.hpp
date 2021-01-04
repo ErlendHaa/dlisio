@@ -2,6 +2,10 @@
 #define DLISIO_TYPES_HPP
 
 #include <cstdint>
+#include <string>
+#include <complex>
+
+#include "strong-typedef.hpp"
 
 namespace dl {
 /*
@@ -235,6 +239,276 @@ constexpr int SIZEOF_OBJREF = VARIABLE_LENGTH;
 constexpr int SIZEOF_ATTREF = VARIABLE_LENGTH;
 constexpr int SIZEOF_STATUS = 1;
 constexpr int SIZEOF_UNITS  = VARIABLE_LENGTH;
+
+/*
+ * It's _very_ often necessary to access the raw underlying type of the strong
+ * type aliases for comparisons, literals, or conversions. dl::decay inspects
+ * the argument type and essentially static casts it, regardless of which dl
+ * type comes in - it's an automation of static_cast<const value_type&>(x)
+ * which otherwise would be repeated a million times
+ *
+ * The stong typedef's using from detail::strong_typedef has a more specific
+ * overload available - the templated version is for completeness.
+ */
+template < typename T >
+T& decay( T& x ) noexcept (true) {
+    return x;
+}
+
+#define DLIS_REGISTER_TYPEALIAS(name, type) \
+    struct name : detail::strong_typedef< name, type > { \
+        name() = default; \
+        name( const name& ) = default; \
+        name( name&& )      = default; \
+        name& operator = ( const name& ) = default; \
+        name& operator = ( name&& )      = default; \
+        using detail::strong_typedef< name, type >::strong_typedef; \
+        using detail::strong_typedef< name, type >::operator =; \
+        using detail::strong_typedef< name, type >::operator ==; \
+        using detail::strong_typedef< name, type >::operator !=; \
+    }; \
+    inline const type& decay(const name& x) noexcept (true) { \
+        return static_cast< const type& >(x); \
+    } \
+    inline type& decay(name& x) noexcept (true) { \
+        return static_cast< type& >(x); \
+    }
+
+DLIS_REGISTER_TYPEALIAS(fshort, float)
+DLIS_REGISTER_TYPEALIAS(isingl, float)
+DLIS_REGISTER_TYPEALIAS(vsingl, float)
+DLIS_REGISTER_TYPEALIAS(uvari,  std::int32_t)
+DLIS_REGISTER_TYPEALIAS(origin, std::int32_t)
+DLIS_REGISTER_TYPEALIAS(ident,  std::string)
+DLIS_REGISTER_TYPEALIAS(ascii,  std::string)
+DLIS_REGISTER_TYPEALIAS(units,  std::string)
+DLIS_REGISTER_TYPEALIAS(status, std::uint8_t)
+
+#undef DLIS_REGISTER_TYPEALIAS
+
+template< typename T, int > struct validated;
+template< typename T >
+struct validated< T, 2 > {
+    T V, A;
+
+    bool operator == (const validated& o) const noexcept (true) {
+        return this->V == o.V && this->A == o.A;
+    }
+
+    bool operator != (const validated& o) const noexcept (true) {
+        return !(*this == o);
+    }
+};
+template< typename T > struct validated< T, 3 > {
+    T V, A, B;
+
+    bool operator == (const validated& o) const noexcept (true) {
+        return this->V == o.V && this->A == o.A && this->B == o.B;
+    }
+
+    bool operator != (const validated& o) const noexcept (true) {
+        return !(*this == o);
+    }
+};
+
+using fsing1 = validated< float, 2 >;
+using fsing2 = validated< float, 3 >;
+using fdoub1 = validated< double, 2 >;
+using fdoub2 = validated< double, 3 >;
+
+using ushort = std::uint8_t;
+using unorm  = std::uint16_t;
+using ulong  = std::uint32_t;
+
+using sshort = std::int8_t;
+using snorm  = std::int16_t;
+using slong  = std::int32_t;
+
+using fsingl = float;
+using fdoubl = double;
+
+using csingl = std::complex< fsingl >;
+using cdoubl = std::complex< fdoubl >;
+
+struct dtime {
+    int Y, TZ, M, D, H, MN, S, MS;
+
+    bool operator == (const dtime& o) const noexcept (true);
+    bool operator != (const dtime& o) const noexcept (true);
+};
+
+struct obname {
+    dl::origin origin;
+    dl::ushort copy;
+    dl::ident  id;
+
+    bool operator == ( const obname& rhs ) const noexcept (true);
+    bool operator != (const obname& o) const noexcept (true);
+    dl::ident fingerprint(const std::string& type) const noexcept (false);
+};
+
+struct objref {
+    dl::ident  type;
+    dl::obname name;
+
+    bool operator == ( const objref& rhs ) const noexcept( true );
+    bool operator != (const objref& o) const noexcept (true);
+    dl::ident fingerprint() const noexcept (false);
+};
+
+struct attref {
+    dl::ident  type;
+    dl::obname name;
+    dl::ident  label;
+
+    bool operator == ( const attref& rhs ) const noexcept( true );
+    bool operator != (const attref& o) const noexcept (true);
+};
+
+/*
+ * Register useful compile time information on the types for other template
+ * functions to hook into
+ */
+
+template < typename T > struct typeinfo;
+template <> struct typeinfo< dl::fshort > {
+    static const representation_code reprc = dl::representation_code::fshort;
+    constexpr static const char name[] = "fshort";
+};
+template <> struct typeinfo< dl::fsingl > {
+    static const representation_code reprc = dl::representation_code::fsingl;
+    constexpr static const char name[] = "fsingl";
+};
+template <> struct typeinfo< dl::fsing1 > {
+    static const representation_code reprc = dl::representation_code::fsing1;
+    constexpr static const char name[] = "fsing1";
+};
+template <> struct typeinfo< dl::fsing2 > {
+    static const representation_code reprc = dl::representation_code::fsing2;
+    constexpr static const char name[] = "fsing2";
+};
+template <> struct typeinfo< dl::isingl > {
+    static const representation_code reprc = dl::representation_code::isingl;
+    constexpr static const char name[] = "isingl";
+};
+template <> struct typeinfo< dl::vsingl > {
+    static const representation_code reprc = dl::representation_code::vsingl;
+    constexpr static const char name[] = "vsingl";
+};
+template <> struct typeinfo< dl::fdoubl > {
+    static const representation_code reprc = dl::representation_code::fdoubl;
+    constexpr static const char name[] = "fdoubl";
+};
+template <> struct typeinfo< dl::fdoub1 > {
+    static const representation_code reprc = dl::representation_code::fdoub1;
+    constexpr static const char name[] = "fdoub1";
+};
+template <> struct typeinfo< dl::fdoub2 > {
+    static const representation_code reprc = dl::representation_code::fdoub2;
+    constexpr static const char name[] = "fdoub2";
+};
+template <> struct typeinfo< dl::csingl > {
+    static const representation_code reprc = dl::representation_code::csingl;
+    constexpr static const char name[] = "csingl";
+};
+template <> struct typeinfo< dl::cdoubl > {
+    static const representation_code reprc = dl::representation_code::cdoubl;
+    constexpr static const char name[] = "cdoubl";
+};
+template <> struct typeinfo< dl::sshort > {
+    static const representation_code reprc = dl::representation_code::sshort;
+    constexpr static const char name[] = "sshort";
+};
+template <> struct typeinfo< dl::snorm > {
+    static const representation_code reprc = dl::representation_code::snorm;
+    constexpr static const char name[] = "snorm";
+};
+template <> struct typeinfo< dl::slong > {
+    static const representation_code reprc = dl::representation_code::slong;
+    constexpr static const char name[] = "slong";
+};
+template <> struct typeinfo< dl::ushort > {
+    static const representation_code reprc = dl::representation_code::ushort;
+    constexpr static const char name[] = "ushort";
+};
+template <> struct typeinfo< dl::unorm > {
+    static const representation_code reprc = dl::representation_code::unorm;
+    constexpr static const char name[] = "unorm";
+};
+template <> struct typeinfo< dl::ulong > {
+    static const representation_code reprc = dl::representation_code::ulong;
+    constexpr static const char name[] = "ulong";
+};
+template <> struct typeinfo< dl::uvari > {
+    static const representation_code reprc = dl::representation_code::uvari;
+    constexpr static const char name[] = "uvari";
+};
+template <> struct typeinfo< dl::ident > {
+    static const representation_code reprc = dl::representation_code::ident;
+    constexpr static const char name[] = "ident";
+};
+template <> struct typeinfo< dl::ascii > {
+    static const representation_code reprc = dl::representation_code::ascii;
+    constexpr static const char name[] = "ascii";
+};
+template <> struct typeinfo< dl::dtime > {
+    static const representation_code reprc = dl::representation_code::dtime;
+    constexpr static const char name[] = "dtime";
+};
+template <> struct typeinfo< dl::origin > {
+    static const representation_code reprc = dl::representation_code::origin;
+    constexpr static const char name[] = "origin";
+};
+template <> struct typeinfo< dl::obname > {
+    static const representation_code reprc = dl::representation_code::obname;
+    constexpr static const char name[] = "obname";
+};
+template <> struct typeinfo< dl::objref > {
+    static const representation_code reprc = dl::representation_code::objref;
+    constexpr static const char name[] = "objref";
+};
+template <> struct typeinfo< dl::attref > {
+    static const representation_code reprc = dl::representation_code::attref;
+    constexpr static const char name[] = "attref";
+};
+template <> struct typeinfo< dl::status > {
+    static const representation_code reprc = dl::representation_code::status;
+    constexpr static const char name[] = "status";
+};
+template <> struct typeinfo< dl::units > {
+    static const representation_code reprc = dl::representation_code::units;
+    constexpr static const char name[] = "units";
+};
+
+const char* cast( const char* xs, sshort& ) noexcept (true);
+const char* cast( const char* xs, snorm& )  noexcept (true);
+const char* cast( const char* xs, slong& )  noexcept (true);
+const char* cast( const char* xs, ushort& ) noexcept (true);
+const char* cast( const char* xs, unorm& )  noexcept (true);
+const char* cast( const char* xs, ulong& )  noexcept (true);
+const char* cast( const char* xs, uvari& )  noexcept (true);
+const char* cast( const char* xs, fshort& ) noexcept (true);
+const char* cast( const char* xs, fsingl& ) noexcept (true);
+const char* cast( const char* xs, fdoubl& ) noexcept (true);
+const char* cast( const char* xs, fsing1& ) noexcept (true);
+const char* cast( const char* xs, fsing2& ) noexcept (true);
+const char* cast( const char* xs, fdoub1& ) noexcept (true);
+const char* cast( const char* xs, fdoub2& ) noexcept (true);
+const char* cast( const char* xs, csingl& ) noexcept (true);
+const char* cast( const char* xs, cdoubl& ) noexcept (true);
+const char* cast( const char* xs, isingl& ) noexcept (true);
+const char* cast( const char* xs, vsingl& ) noexcept (true);
+const char* cast( const char* xs, status& ) noexcept (true);
+const char* cast( const char* xs, ident& )  noexcept (false);
+const char* cast( const char* xs, units& )  noexcept (false);
+const char* cast( const char* xs, ascii& )  noexcept (false);
+const char* cast( const char* xs, origin& ) noexcept (true);
+const char* cast( const char* xs, obname& ) noexcept (false);
+const char* cast( const char* xs, objref& ) noexcept (false);
+const char* cast( const char* xs, attref& ) noexcept (false);
+const char* cast( const char* xs, dtime& )  noexcept (true);
+const char* cast( const char* xs, representation_code& reprc )
+noexcept (false);
 
 } // namespace dl
 

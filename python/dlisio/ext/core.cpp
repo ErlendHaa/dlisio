@@ -40,9 +40,9 @@ class PYBIND11_EXPORT not_implemented;
 class PYBIND11_EXPORT not_found;
 }
 
-#include <dlisio/ext/exception.hpp>
-#include <dlisio/ext/io.hpp>
-#include <dlisio/ext/types.hpp>
+#include <dlisio/exception.hpp>
+#include <dlisio/io.hpp>
+#include <dlisio/explicits.hpp>
 
 namespace {
 /*

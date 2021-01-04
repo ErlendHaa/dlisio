@@ -1,5 +1,5 @@
-#ifndef DLISIO_EXT_STRONG_TYPEDEF
-#define DLISIO_EXT_STRONG_TYPEDEF
+#ifndef DLISIO_STRONG_TYPEDEF
+#define DLISIO_STRONG_TYPEDEF
 
 #include <type_traits>
 #include <utility>
@@ -156,4 +156,4 @@ void swap( strong_typedef< Tag, T >& a,
 
 }
 
-#endif // DLISIO_EXT_STRONG_TYPEDEF
+#endif // DLISIO_STRONG_TYPEDEF
