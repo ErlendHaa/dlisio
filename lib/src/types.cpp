@@ -686,7 +686,7 @@ void* units_tobytes( void* xs, std::uint8_t len, const char* in ) {
 }
 
 int sizeof_type( int x ) {
-    if ( x < DLIS_FSHORT || x > DLIS_UNITS ) return -1;
+    if ( x < FSHORT || x > UNITS ) return -1;
 
     constexpr const int sizes[] = {
         dl::SIZEOF_FSHORT,

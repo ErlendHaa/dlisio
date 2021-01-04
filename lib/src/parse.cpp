@@ -441,7 +441,7 @@ const char* cast( const char* xs,
     dl::ushort x{ 0 };
     xs = cast( xs, x );
 
-    if (x < DLIS_FSHORT || x > DLIS_UNITS) {
+    if (x < dl::FSHORT || x > dl::UNITS) {
         reprc = dl::representation_code::undef;
     } else {
         reprc = static_cast< dl::representation_code >( x );

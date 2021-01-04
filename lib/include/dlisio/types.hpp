@@ -175,34 +175,34 @@ void* units_tobytes( void*, uint8_t len, const char* in );
  */
 int sizeof_type(int);
 
-#define DLIS_FSHORT 1  // Low precision floating point
-#define DLIS_FSINGL 2  // IEEE single precision floating point
-#define DLIS_FSING1 3  // Validated single precision floating point
-#define DLIS_FSING2 4  // Two-way validated single precision floating point
-#define DLIS_ISINGL 5  // IBM single precision floating point
-#define DLIS_VSINGL 6  // VAX single precision floating point
-#define DLIS_FDOUBL 7  // IEEE double precision floating point
-#define DLIS_FDOUB1 8  // Validated double precision floating point
-#define DLIS_FDOUB2 9  // Two-way validated double precision floating point
-#define DLIS_CSINGL 10 // Single precision complex
-#define DLIS_CDOUBL 11 // Double precision complex
-#define DLIS_SSHORT 12 // Short signed integer
-#define DLIS_SNORM  13 // Normal signed integer
-#define DLIS_SLONG  14 // Long signed integer
-#define DLIS_USHORT 15 // Short unsigned integer
-#define DLIS_UNORM  16 // Normal unsigned integer
-#define DLIS_ULONG  17 // Long unsigned integer
-#define DLIS_UVARI  18 // Variable-length unsigned integer
-#define DLIS_IDENT  19 // Variable-length identifier
-#define DLIS_ASCII  20 // Variable-length ASCII character string
-#define DLIS_DTIME  21 // Date and time
-#define DLIS_ORIGIN 22 // Origin reference
-#define DLIS_OBNAME 23 // Object name
-#define DLIS_OBJREF 24 // Object reference
-#define DLIS_ATTREF 25 // Attribute reference
-#define DLIS_STATUS 26 // Boolean status
-#define DLIS_UNITS  27 // Units expression
-#define DLIS_UNDEF  66 // Undefined value
+constexpr int FSHORT = 1;  // Low precision floating point
+constexpr int FSINGL = 2;  // IEEE single precision floating point
+constexpr int FSING1 = 3;  // Validated single precision floating point
+constexpr int FSING2 = 4;  // Two-way validated single precision floating point
+constexpr int ISINGL = 5;  // IBM single precision floating point
+constexpr int VSINGL = 6;  // VAX single precision floating point
+constexpr int FDOUBL = 7;  // IEEE double precision floating point
+constexpr int FDOUB1 = 8;  // Validated double precision floating point
+constexpr int FDOUB2 = 9;  // Two-way validated double precision floating point
+constexpr int CSINGL = 10; // Single precision complex
+constexpr int CDOUBL = 11; // Double precision complex
+constexpr int SSHORT = 12; // Short signed integer
+constexpr int SNORM  = 13; // Normal signed integer
+constexpr int SLONG  = 14; // Long signed integer
+constexpr int USHORT = 15; // Short unsigned integer
+constexpr int UNORM  = 16; // Normal unsigned integer
+constexpr int ULONG  = 17; // Long unsigned integer
+constexpr int UVARI  = 18; // Variable-length unsigned integer
+constexpr int IDENT  = 19; // Variable-length identifier
+constexpr int ASCII  = 20; // Variable-length ASCII character string
+constexpr int DTIME  = 21; // Date and time
+constexpr int ORIGIN = 22; // Origin reference
+constexpr int OBNAME = 23; // Object name
+constexpr int OBJREF = 24; // Object reference
+constexpr int ATTREF = 25; // Attribute reference
+constexpr int STATUS = 26; // Boolean status
+constexpr int UNITS  = 27; // Units expression
+constexpr int UNDEF  = 66; // Undefined value
 
 constexpr int VARIABLE_LENGTH = 0;
 
