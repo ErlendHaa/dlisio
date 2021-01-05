@@ -37,7 +37,7 @@ std::ostream& operator<<( std::ostream& stream, const SULv1& x ) {
     return stream << "SULv1 {"
                   << "\n\t.seq = " << x.seqnum
                   << "\n\t.ver = " << x.major << "." << x.minor
-                  << "\n\t.lay = " << (x.layout == DLIS_STRUCTURE_RECORD ?
+                  << "\n\t.lay = " << (x.layout == dl::STRUCTURE_RECORD ?
                                        "RECORD" : "UNKNOWN")
                   << "\n\t.len = " << x.maxlen
                   << "\n\t.idt = '" << x.id << "'"
@@ -91,7 +91,7 @@ TEST_CASE("A simple, well-formatted SULv1", "[sul][v1]") {
     ref.seqnum = 1;
     ref.major  = 1;
     ref.minor  = 0;
-    ref.layout = DLIS_STRUCTURE_RECORD;
+    ref.layout = dl::STRUCTURE_RECORD;
     ref.maxlen = 8192;
     std::strcpy( ref.id, "Default Storage Set "
                          "                    "
@@ -151,7 +151,7 @@ TEST_CASE("A well-formatted SULv1 with undefined maxlen", "[sul][v1]") {
     ref.seqnum = 1;
     ref.major  = 1;
     ref.minor  = 0;
-    ref.layout = DLIS_STRUCTURE_RECORD;
+    ref.layout = dl::STRUCTURE_RECORD;
     ref.maxlen = 0;
     std::strcpy( ref.id, "Default Storage Set "
                          "                    "
@@ -230,104 +230,104 @@ struct correct_sul
 };
 
 TEST_CASE_METHOD(correct_sul, "SUL with base check correct values", "[sul]") {
-    check_sul(seqstr + revistr + structur + maxilen + id, DLIS_OK);
+    check_sul(seqstr + revistr + structur + maxilen + id, dl::ERROR_OK);
 }
 
 
 TEST_CASE_METHOD(correct_sul, "seq can't be null", "[sul]") {
-    check_sul("   0" + revistr + structur + maxilen + id, DLIS_INCONSISTENT);
+    check_sul("   0" + revistr + structur + maxilen + id, dl::ERROR_INCONSISTENT);
 }
 
 TEST_CASE_METHOD(correct_sul, "seq can't be negative", "[sul]") {
-    check_sul("  -1" + revistr + structur + maxilen + id, DLIS_INCONSISTENT);
+    check_sul("  -1" + revistr + structur + maxilen + id, dl::ERROR_INCONSISTENT);
 }
 
 TEST_CASE_METHOD(correct_sul, "seq can be left-hand formatted", "[sul]") {
-    check_sul("1   " + revistr + structur + maxilen + id, DLIS_OK);
+    check_sul("1   " + revistr + structur + maxilen + id, dl::ERROR_OK);
 }
 
 TEST_CASE_METHOD(correct_sul, "seq should be a valid integer", "[sul]") {
-    check_sul("  1." + revistr + structur + maxilen + id, DLIS_INCONSISTENT);
+    check_sul("  1." + revistr + structur + maxilen + id, dl::ERROR_INCONSISTENT);
 }
 
 TEST_CASE_METHOD(correct_sul, "seq can't contain more than 1 number", "[sul]") {
-    check_sul("1 0 " + revistr + structur + maxilen + id, DLIS_INCONSISTENT);
+    check_sul("1 0 " + revistr + structur + maxilen + id, dl::ERROR_INCONSISTENT);
 }
 
 TEST_CASE_METHOD(correct_sul, "seq can't contain invalid characters", "[sul]") {
-    check_sul("A3B!" + revistr + structur + maxilen + id, DLIS_INCONSISTENT);
+    check_sul("A3B!" + revistr + structur + maxilen + id, dl::ERROR_INCONSISTENT);
 }
 
 
 TEST_CASE_METHOD(correct_sul, "revision V1 is only supported one", "[sul]") {
-    check_sul(seqstr + "V2.00" + structur + maxilen + id, DLIS_UNEXPECTED_VALUE);
+    check_sul(seqstr + "V2.00" + structur + maxilen + id, dl::ERROR_UNEXPECTED_VALUE);
 }
 
 TEST_CASE_METHOD(correct_sul, "revision V1.00 is only suppoerted one", "[sul]") {
-    check_sul(seqstr + "V1.99" + structur + maxilen + id, DLIS_UNEXPECTED_VALUE);
+    check_sul(seqstr + "V1.99" + structur + maxilen + id, dl::ERROR_UNEXPECTED_VALUE);
 }
 
 TEST_CASE_METHOD(correct_sul, "revision should start from capital", "[sul]") {
-    check_sul(seqstr + "v1.00" + structur + maxilen + id, DLIS_INCONSISTENT);
+    check_sul(seqstr + "v1.00" + structur + maxilen + id, dl::ERROR_INCONSISTENT);
 }
 
 TEST_CASE_METHOD(correct_sul, "revision should be in a valid format", "[sul]") {
-    check_sul(seqstr + "V1.0A" + structur + maxilen + id, DLIS_INCONSISTENT);
+    check_sul(seqstr + "V1.0A" + structur + maxilen + id, dl::ERROR_INCONSISTENT);
 }
 
 
 TEST_CASE_METHOD(correct_sul, "structure should be capital RECORD", "[sul]") {
-    check_sul(seqstr + revistr + "record" + maxilen + id, DLIS_INCONSISTENT);
+    check_sul(seqstr + revistr + "record" + maxilen + id, dl::ERROR_INCONSISTENT);
 }
 
 TEST_CASE_METHOD(correct_sul, "structure should have all capitals", "[sul]") {
-    check_sul(seqstr + revistr + "Record" + maxilen + id, DLIS_INCONSISTENT);
+    check_sul(seqstr + revistr + "Record" + maxilen + id, dl::ERROR_INCONSISTENT);
 }
 
 TEST_CASE_METHOD(correct_sul, "structure could be only RECORD", "[sul]") {
-    check_sul(seqstr + revistr + "dlisio" + maxilen + id, DLIS_INCONSISTENT);
+    check_sul(seqstr + revistr + "dlisio" + maxilen + id, dl::ERROR_INCONSISTENT);
 }
 
 
 TEST_CASE_METHOD(correct_sul, "maxlen can't be negative", "[sul]") {
-    check_sul(seqstr + revistr + structur + "   -1" + id, DLIS_INCONSISTENT);
+    check_sul(seqstr + revistr + structur + "   -1" + id, dl::ERROR_INCONSISTENT);
 }
 
 TEST_CASE_METHOD(correct_sul, "maxlen can't be empty", "[sul]") {
-    check_sul(seqstr + revistr + structur + "     " + id, DLIS_INCONSISTENT);
+    check_sul(seqstr + revistr + structur + "     " + id, dl::ERROR_INCONSISTENT);
 }
 
 TEST_CASE_METHOD(correct_sul, "maxlen can be left-hand formatted", "[sul]") {
-    check_sul(seqstr + revistr + structur + "128  " + id, DLIS_OK);
+    check_sul(seqstr + revistr + structur + "128  " + id, dl::ERROR_OK);
 }
 
 TEST_CASE_METHOD(correct_sul, "maxlen should be an integer", "[sul]") {
-    check_sul(seqstr + revistr + structur + "234.1" + id, DLIS_INCONSISTENT);
+    check_sul(seqstr + revistr + structur + "234.1" + id, dl::ERROR_INCONSISTENT);
 }
 
 TEST_CASE_METHOD(correct_sul, "maxlen should have only 1 number", "[sul]") {
-    check_sul(seqstr + revistr + structur + "222 3" + id, DLIS_INCONSISTENT);
+    check_sul(seqstr + revistr + structur + "222 3" + id, dl::ERROR_INCONSISTENT);
 }
 
 TEST_CASE_METHOD(correct_sul, "maxlen should have only 1 number, even if 0", "[sul]") {
-    check_sul(seqstr + revistr + structur + "0 128" + id, DLIS_INCONSISTENT);
+    check_sul(seqstr + revistr + structur + "0 128" + id, dl::ERROR_INCONSISTENT);
 }
 
 TEST_CASE_METHOD(correct_sul, "maxlen can't have alpha characters", "[sul]") {
-    check_sul(seqstr + revistr + structur + " 123A" + id, DLIS_INCONSISTENT);
+    check_sul(seqstr + revistr + structur + " 123A" + id, dl::ERROR_INCONSISTENT);
 }
 
 TEST_CASE_METHOD(correct_sul, "maxlen could have only preceeding spaces", "[sul]") {
-    check_sul(seqstr + revistr + structur + ".1234" + id, DLIS_INCONSISTENT);
+    check_sul(seqstr + revistr + structur + ".1234" + id, dl::ERROR_INCONSISTENT);
 }
 
 TEST_CASE_METHOD(correct_sul, "maxlen can't consist of invalid characters", "[sul]") {
-    check_sul(seqstr + revistr + structur + "ABCDE" + id, DLIS_INCONSISTENT);
+    check_sul(seqstr + revistr + structur + "ABCDE" + id, dl::ERROR_INCONSISTENT);
 }
 
 
 TEST_CASE_METHOD(correct_sul, "maxlen can be bigger than supposed VRL", "[sul]") {
-    check_sul(seqstr + revistr + structur + "16385" + id, DLIS_OK);
+    check_sul(seqstr + revistr + structur + "16385" + id, dl::ERROR_OK);
 }
 
 
@@ -335,8 +335,8 @@ TEST_CASE_METHOD(correct_sul, "SUL with null seqnum", "[sul][nulls]") {
     auto label = "   0" + revistr + structur + maxilen + id;
     auto err = dl::sul( label.c_str(), nullptr, &v1.major, &v1.minor,
                                        &v1.layout, &v1.maxlen, v1.id );
-    CHECK( err == DLIS_OK );
-    CHECK( v1.layout == DLIS_STRUCTURE_RECORD );
+    CHECK( err == dl::ERROR_OK );
+    CHECK( v1.layout == dl::STRUCTURE_RECORD );
     CHECK( v1.maxlen == std::stoi(maxilen) );
     CHECK( v1.id == id );
 }
@@ -345,7 +345,7 @@ TEST_CASE_METHOD(correct_sul, "SUL with null layout", "[sul][nulls]") {
     auto label = seqstr + revistr + "DLISIO" + maxilen + id;
     auto err = dl::sul( label.c_str(), &v1.seqnum, &v1.major, &v1.minor,
                                         nullptr, &v1.maxlen, v1.id );
-    CHECK( err == DLIS_OK );
+    CHECK( err == dl::ERROR_OK );
     CHECK( v1.seqnum == std::stoi(seqstr) );
     CHECK( v1.maxlen == std::stoi(maxilen) );
     CHECK( v1.id == id );
@@ -355,9 +355,9 @@ TEST_CASE_METHOD(correct_sul, "SUL with null maxlen", "[sul][nulls]") {
     auto label = seqstr + revistr + structur + "ABCDE" + id;
     auto err = dl::sul( label.c_str(), &v1.seqnum, &v1.major, &v1.minor,
                                        &v1.layout, nullptr, v1.id );
-    CHECK( err == DLIS_OK );
+    CHECK( err == dl::ERROR_OK );
     CHECK( v1.seqnum == std::stoi(seqstr) );
-    CHECK( v1.layout == DLIS_STRUCTURE_RECORD );
+    CHECK( v1.layout == dl::STRUCTURE_RECORD );
     CHECK( v1.id == id );
 }
 
@@ -365,9 +365,9 @@ TEST_CASE_METHOD(correct_sul, "SUL with null id", "[sul][nulls]") {
     auto label = seqstr + revistr + structur + maxilen + "/0";
     auto err = dl::sul( label.c_str(), &v1.seqnum, &v1.major, &v1.minor,
                                        &v1.layout, &v1.maxlen, nullptr );
-    CHECK( err == DLIS_OK );
+    CHECK( err == dl::ERROR_OK );
     CHECK( v1.seqnum == std::stoi(seqstr) );
-    CHECK( v1.layout == DLIS_STRUCTURE_RECORD );
+    CHECK( v1.layout == dl::STRUCTURE_RECORD );
     CHECK( v1.maxlen == std::stoi(maxilen) );
 }
 
@@ -375,11 +375,11 @@ TEST_CASE_METHOD(correct_sul, "SUL with garbage minor/major version", "[sul]") {
     auto label = seqstr + "ABCDE" + structur + maxilen + id;
     auto err = dl::sul( label.c_str(), &v1.seqnum, &v1.major, &v1.minor,
                                        &v1.layout, &v1.maxlen, v1.id );
-    CHECK( err == DLIS_INCONSISTENT);
+    CHECK( err == dl::ERROR_INCONSISTENT);
     CHECK( v1.seqnum == std::stoi(seqstr) );
     CHECK( v1.major == 1 );
     CHECK( v1.minor == 0 );
-    CHECK( v1.layout == DLIS_STRUCTURE_RECORD );
+    CHECK( v1.layout == dl::STRUCTURE_RECORD );
     CHECK( v1.maxlen == std::stoi(maxilen) );
     CHECK( v1.id == id );
 }
@@ -398,7 +398,7 @@ TEST_CASE("Find SUL after 14 bytes of garbage", "[sul]") {
     ref.seqnum = 1;
     ref.major  = 1;
     ref.minor  = 0;
-    ref.layout = DLIS_STRUCTURE_RECORD;
+    ref.layout = dl::STRUCTURE_RECORD;
     ref.maxlen = 8192;
     std::strcpy( ref.id, "Default Storage Set "
                          "                    "
@@ -430,7 +430,7 @@ TEST_CASE("find_sul gracefully handles missing SUL", "[sul]") {
     const auto stream = std::vector< char >(400, '.');
     long long off;
     const auto err = dl::find_sul(stream.data(), stream.size() / 2, &off);
-    CHECK(err == DLIS_NOTFOUND);
+    CHECK(err == dl::ERROR_NOTFOUND);
 }
 
 TEST_CASE("find_sul gracefully handles truncated SUL", "[sul]") {
@@ -440,5 +440,5 @@ TEST_CASE("find_sul gracefully handles truncated SUL", "[sul]") {
 
     long long off;
     const auto err = dl::find_sul(stream.data(), stream.size() / 2, &off);
-    CHECK(err == DLIS_INCONSISTENT);
+    CHECK(err == dl::ERROR_INCONSISTENT);
 }

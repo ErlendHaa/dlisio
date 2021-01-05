@@ -401,8 +401,6 @@ int object_fingerprint(int32_t type_len,
                        char* fingerprint);
 
 
-} // namespace dl
-
 /*
  * A table of the component roles, given by the three high bits of the
  * component
@@ -418,48 +416,35 @@ int object_fingerprint(int32_t type_len,
  * 110  RSET     Replacement Set
  * 111  SET      Set
  */
-enum component_role {
-    DLIS_ROLE_ABSATR = 0,
-    DLIS_ROLE_ATTRIB = 1 << 5,
-    DLIS_ROLE_INVATR = 1 << 6,
-    DLIS_ROLE_OBJECT = 1 << 6 | 1 << 5,
-    DLIS_ROLE_RESERV = 1 << 7,
-    DLIS_ROLE_RDSET  = 1 << 7 | 1 << 5,
-    DLIS_ROLE_RSET   = 1 << 7 | 1 << 6,
-    DLIS_ROLE_SET    = 1 << 7 | 1 << 6 | 1 << 5,
+enum COMPONENT_ROLE {
+    COMP_ROLE_ABSATR = 0,
+    COMP_ROLE_ATTRIB = 1 << 5,
+    COMP_ROLE_INVATR = 1 << 6,
+    COMP_ROLE_OBJECT = 1 << 6 | 1 << 5,
+    COMP_ROLE_RESERV = 1 << 7,
+    COMP_ROLE_RDSET  = 1 << 7 | 1 << 5,
+    COMP_ROLE_RSET   = 1 << 7 | 1 << 6,
+    COMP_ROLE_SET    = 1 << 7 | 1 << 6 | 1 << 5,
 };
 
 enum DLIS_STRUCTURE {
-    DLIS_STRUCTURE_UNKNOWN,
-    DLIS_STRUCTURE_RECORD,
-    DLIS_STRUCTURE_FIXREC,
-    DLIS_STRUCTURE_RECSTM,
-    DLIS_STRUCTURE_FIXSTM,
+    STRUCTURE_UNKNOWN,
+    STRUCTURE_RECORD,
+    STRUCTURE_FIXREC,
+    STRUCTURE_RECSTM,
+    STRUCTURE_FIXSTM,
 };
 
 enum DLIS_ERRCODE {
-    DLIS_OK = 0,
-    DLIS_INCONSISTENT,
-    DLIS_UNEXPECTED_VALUE,
-    DLIS_INVALID_ARGS,
-    DLIS_TRUNCATED,
-    DLIS_BAD_SIZE,
-    DLIS_NOTFOUND,
+    ERROR_OK = 0,
+    ERROR_INCONSISTENT,
+    ERROR_UNEXPECTED_VALUE,
+    ERROR_INVALID_ARGS,
+    ERROR_TRUNCATED,
+    ERROR_BAD_SIZE,
+    ERROR_NOTFOUND,
 };
 
-enum dlis_eflr_type_code {
-    DLIS_FHLR   = 0,
-    DLIS_OLR    = 1,
-    DLIS_AXIS   = 2,
-    DLIS_CHANNL = 3,
-    DLIS_FRAME  = 4,
-    DLIS_STATIC = 5,
-    DLIS_SCRIPT = 6,
-    DLIS_UPDATE = 7,
-    DLIS_UDI    = 8,
-    DLIS_LNAME  = 9,
-    DLIS_SPEC   = 10,
-    DLIS_DICT   = 11,
-};
+} // namespace dl
 
 #endif //DLISIO_HPP

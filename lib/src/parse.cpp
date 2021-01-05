@@ -29,9 +29,9 @@ set_descriptor parse_set_descriptor( const char* cur ) noexcept (false) {
     const auto err = dl::component_set( attr, flags.role, &type, &name );
 
     switch (err) {
-        case DLIS_OK:
+        case dl::ERROR_OK:
             break;
-        case DLIS_UNEXPECTED_VALUE: {
+        case dl::ERROR_UNEXPECTED_VALUE: {
                 const auto bits = std::bitset< 8 >{ attr }.to_string();
                 const auto role = dl::component_str(flags.role);
                 const auto msg  = "error parsing object set descriptor: "
@@ -71,15 +71,15 @@ attribute_descriptor parse_attribute_descriptor( const char* cur ) {
 
     attribute_descriptor flags;
     switch (role) {
-        case DLIS_ROLE_ABSATR:
+        case dl::COMP_ROLE_ABSATR:
             flags.absent = true;
             break;
 
-        case DLIS_ROLE_OBJECT:
+        case dl::COMP_ROLE_OBJECT:
             flags.object = true;
             break;
 
-        case DLIS_ROLE_INVATR:
+        case dl::COMP_ROLE_INVATR:
             flags.invariant = true;
             break;
 
@@ -97,9 +97,9 @@ attribute_descriptor parse_attribute_descriptor( const char* cur ) {
                                                        &value );
 
     switch (err) {
-        case DLIS_OK:
+        case dl::ERROR_OK:
             break;
-        case DLIS_UNEXPECTED_VALUE: {
+        case dl::ERROR_UNEXPECTED_VALUE: {
             const auto bits = std::bitset< 8 >(role).to_string();
             const auto was  = dl::component_str(role);
             const auto msg  = "error parsing attribute descriptor: "
@@ -136,9 +136,9 @@ object_descriptor parse_object_descriptor( const char* cur ) {
     const auto err = dl::component_object( attr, role, &name );
 
     switch (err) {
-        case DLIS_OK:
+        case dl::ERROR_OK:
             break;
-        case DLIS_UNEXPECTED_VALUE: {
+        case dl::ERROR_UNEXPECTED_VALUE: {
             const auto bits = std::bitset< 8 >{ attr }.to_string();
             const auto was  = dl::component_str(role);
             const auto msg  = "error parsing object descriptor: "
@@ -1084,7 +1084,7 @@ const char* object_set::parse_set_component(const char* cur) noexcept (false) {
     }
 
     switch (flags.role) {
-        case DLIS_ROLE_RDSET: {
+        case dl::COMP_ROLE_RDSET: {
             dlis_error err {
                 dl::error_severity::MINOR,
                 "Redundant sets are not supported by dlisio",
@@ -1096,7 +1096,7 @@ const char* object_set::parse_set_component(const char* cur) noexcept (false) {
             this->log.push_back(err);
             break;
         }
-        case DLIS_ROLE_RSET: {
+        case dl::COMP_ROLE_RSET: {
             dlis_error err {
                 dl::error_severity::MAJOR,
                 "Replacement sets are not supported by dlisio",

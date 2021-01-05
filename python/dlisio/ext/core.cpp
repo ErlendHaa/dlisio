@@ -289,14 +289,14 @@ py::dict storage_label( py::buffer b ) {
 
 
     switch (err) {
-        case DLIS_OK: break;
+        case dl::ERROR_OK: break;
 
         // TODO: report more precisely  a lot of stuff can go wrong with the
         // SUL
-        case DLIS_UNEXPECTED_VALUE:
+        case dl::ERROR_UNEXPECTED_VALUE:
             throw py::value_error( "unable to parse storage label" );
 
-        case DLIS_INCONSISTENT:
+        case dl::ERROR_INCONSISTENT:
             runtime_warning(
                 "storage unit label inconsistent with "
                 "specification - falling back to assuming DLIS v1"
@@ -309,7 +309,7 @@ py::dict storage_label( py::buffer b ) {
         + std::to_string( minor );
 
     std::string laystr = "record";
-    if (layout != DLIS_STRUCTURE_RECORD) laystr = "unknown";
+    if (layout != dl::STRUCTURE_RECORD) laystr = "unknown";
 
     return py::dict(
         "sequence"_a = seqnum,

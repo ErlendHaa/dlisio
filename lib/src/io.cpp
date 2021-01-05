@@ -71,15 +71,15 @@ long long findsul( stream& file ) noexcept (false) {
     const auto err = dl::find_sul(buffer, bytes_read, &offset);
 
     switch (err) {
-        case DLIS_OK:
+        case dl::ERROR_OK:
             return offset;
 
-        case DLIS_NOTFOUND: {
+        case dl::ERROR_NOTFOUND: {
             auto msg = "searched {} bytes, but could not find storage label";
             throw dl::not_found(fmt::format(msg, bytes_read));
         }
 
-        case DLIS_INCONSISTENT: {
+        case dl::ERROR_INCONSISTENT: {
             auto msg = "found something that could be parts of a SUL, "
                        "file may be corrupted";
             throw std::runtime_error(msg);
@@ -105,17 +105,17 @@ long long findvrl( stream& file, long long from ) noexcept (false) {
 
     // TODO: error messages could maybe be pulled from core library
     switch (err) {
-        case DLIS_OK:
+        case dl::ERROR_OK:
             return from + offset;
 
-        case DLIS_NOTFOUND: {
+        case dl::ERROR_NOTFOUND: {
             const auto msg = "searched {} bytes, but could not find "
                              "visible record envelope pattern [0xFF 0x01]"
             ;
             throw dl::not_found(fmt::format(msg, bytes_read));
         }
 
-        case DLIS_INCONSISTENT: {
+        case dl::ERROR_INCONSISTENT: {
             const auto msg = "found [0xFF 0x01] but len field not intact, "
                              "file may be corrupted";
             throw std::runtime_error(msg);
@@ -138,10 +138,10 @@ bool hastapemark(stream& file) noexcept (false) {
     const auto err = dl::tapemark(buffer, TAPEMARK_SIZE);
 
     switch (err) {
-        case DLIS_OK:
+        case dl::ERROR_OK:
             return true;
 
-        case DLIS_NOTFOUND:
+        case dl::ERROR_NOTFOUND:
             return false;
 
         default:
@@ -185,11 +185,11 @@ noexcept (false) {
     const auto err = dl::trim_record_segment(attrs, begin, end, &trim);
 
     switch (err) {
-        case DLIS_OK:
+        case dl::ERROR_OK:
             segment.resize(segment.size() - trim);
             return;
 
-        case DLIS_BAD_SIZE: {
+        case dl::ERROR_BAD_SIZE: {
             if (trim - segment_size != dl::LRSH_SIZE) {
                 const auto msg =
                     "bad segment trim: trim size (which is {}) "

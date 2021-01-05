@@ -61,7 +61,7 @@ TEST_CASE("An empty encryption packet", "[encpk][v1]") {
     int cc = -1;
     auto err = dl::encryption_packet_info( encpk, &len, &cc );
 
-    CHECK( err == DLIS_OK );
+    CHECK( err == dl::ERROR_OK );
     CHECK( len == 0 );
     CHECK( cc == 0 );
 }
@@ -76,7 +76,7 @@ TEST_CASE("A non-empty encryption packet", "[encpk][v1]") {
     int cc = -1;
     auto err = dl::encryption_packet_info( encpk, &len, &cc );
 
-    CHECK( err == DLIS_OK );
+    CHECK( err == dl::ERROR_OK );
     CHECK( len == 4 );
     CHECK( cc == 3 );
 }
@@ -91,7 +91,7 @@ TEST_CASE("A non-even encryption packet", "[encpk][v1]") {
     int cc = -1;
     auto err = dl::encryption_packet_info( encpk, &len, &cc );
 
-    CHECK( err == DLIS_UNEXPECTED_VALUE );
+    CHECK( err == dl::ERROR_UNEXPECTED_VALUE );
 }
 
 TEST_CASE("A too small encryption packet", "[encpk][v1]") {
@@ -104,7 +104,7 @@ TEST_CASE("A too small encryption packet", "[encpk][v1]") {
     int cc = -1;
     auto err = dl::encryption_packet_info( encpk, &len, &cc );
 
-    CHECK( err == DLIS_INCONSISTENT );
+    CHECK( err == dl::ERROR_INCONSISTENT );
 }
 
 TEST_CASE("Component roles", "[component][v1]") {
@@ -120,58 +120,58 @@ TEST_CASE("Component roles", "[component][v1]") {
     int role, name;
     SECTION("Set" ) {
         auto const err = dl::component( SET, &role );
-        CHECK( err == DLIS_OK );
-        CHECK( role == DLIS_ROLE_SET );
+        CHECK( err == dl::ERROR_OK );
+        CHECK( role == dl::COMP_ROLE_SET );
     }
 
     SECTION("Replacement Set" ) {
         auto const err = dl::component( RSET, &role );
-        CHECK( err == DLIS_OK );
-        CHECK( role == DLIS_ROLE_RSET );
+        CHECK( err == dl::ERROR_OK );
+        CHECK( role == dl::COMP_ROLE_RSET );
     }
 
     SECTION("Redundant Set" ) {
         auto const err = dl::component( RDSET, &role );
-        CHECK( err == DLIS_OK );
-        CHECK( role == DLIS_ROLE_RDSET );
+        CHECK( err == dl::ERROR_OK );
+        CHECK( role == dl::COMP_ROLE_RDSET );
     }
 
     SECTION("Object" ) {
         auto const err = dl::component( OBJ, &role );
-        CHECK( err == DLIS_OK );
-        CHECK( role == DLIS_ROLE_OBJECT );
+        CHECK( err == dl::ERROR_OK );
+        CHECK( role == dl::COMP_ROLE_OBJECT );
     }
 
     SECTION("Attribute" ) {
         auto const err = dl::component( ATTR, &role );
-        CHECK( err == DLIS_OK );
-        CHECK( role == DLIS_ROLE_ATTRIB  );
+        CHECK( err == dl::ERROR_OK );
+        CHECK( role == dl::COMP_ROLE_ATTRIB  );
     }
 
     SECTION("Invariant Attribute" ) {
         auto const err = dl::component( INVATTR, &role );
-        CHECK( err == DLIS_OK );
-        CHECK( role == DLIS_ROLE_INVATR );
+        CHECK( err == dl::ERROR_OK );
+        CHECK( role == dl::COMP_ROLE_INVATR );
     }
 
     SECTION("Absent Attribute" ) {
         auto const err = dl::component( ABSATTR, &role );
-        CHECK( err == DLIS_OK );
-        CHECK( role == DLIS_ROLE_ABSATR );
+        CHECK( err == dl::ERROR_OK );
+        CHECK( role == dl::COMP_ROLE_ABSATR );
     }
 
     SECTION("--reserved--" ) {
         auto const err = dl::component( RES, &role );
-        CHECK( err == DLIS_OK );
-        CHECK( role == DLIS_ROLE_RESERV );
+        CHECK( err == dl::ERROR_OK );
+        CHECK( role == dl::COMP_ROLE_RESERV );
     }
 }
 
 TEST_CASE("Set descriptors", "[component][v1]") {
     int role, type, name;
     int err = dl::component( 0xF8, &role );
-    CHECK( err == DLIS_OK );
-    CHECK( role == DLIS_ROLE_SET );
+    CHECK( err == dl::ERROR_OK );
+    CHECK( role == dl::COMP_ROLE_SET );
 
     const std::uint8_t TN = 0xF8; // 111 11 xxx
     const std::uint8_t T  = 0xF0; // 111 10 xxx
@@ -180,15 +180,15 @@ TEST_CASE("Set descriptors", "[component][v1]") {
     const std::uint8_t R =  0xA7; // 101 00 111
 
     SECTION("Unexpected value" ) {
-        err = dl::component_set( 0xF8, DLIS_ROLE_OBJECT, &type, &name );
-        CHECK( err == DLIS_UNEXPECTED_VALUE );
+        err = dl::component_set( 0xF8, dl::COMP_ROLE_OBJECT, &type, &name );
+        CHECK( err == dl::ERROR_UNEXPECTED_VALUE );
     }
 
     SECTION("SET: type name") {
         err = dl::component_set( TN, role, &type, &name );
         CHECK( type );
         CHECK( name );
-        CHECK( err == DLIS_OK );
+        CHECK( err == dl::ERROR_OK );
     }
 
     SECTION("SET: type") {
@@ -196,28 +196,28 @@ TEST_CASE("Set descriptors", "[component][v1]") {
         CHECK( type );
         INFO( name );
         CHECK( !name );
-        CHECK( err == DLIS_OK );
+        CHECK( err == dl::ERROR_OK );
     }
 
     SECTION("SET: name") {
         err = dl::component_set( N, role, &type, &name );
         CHECK( !type );
         CHECK( name );
-        CHECK( err == DLIS_OK );
+        CHECK( err == dl::ERROR_OK );
     }
 
     SECTION("SET: ") {
         err = dl::component_set( Z, role, &type, &name );
         CHECK( !type );
         CHECK( !name );
-        CHECK( err == DLIS_OK );
+        CHECK( err == dl::ERROR_OK );
     }
 
     SECTION("SET: reserved values") {
-        err = dl::component_set( R, DLIS_ROLE_RDSET, &type, &name );
+        err = dl::component_set( R, dl::COMP_ROLE_RDSET, &type, &name );
         CHECK( !type );
         CHECK( !name );
-        CHECK( err == DLIS_OK );
+        CHECK( err == dl::ERROR_OK );
     }
 }
 
@@ -228,29 +228,29 @@ TEST_CASE("Object descriptors", "[component][v1]") {
 
     int role, name;
     int err = dl::component( ON, &role );
-    CHECK( err == DLIS_OK );
-    CHECK( role == DLIS_ROLE_OBJECT );
+    CHECK( err == dl::ERROR_OK );
+    CHECK( role == dl::COMP_ROLE_OBJECT );
 
     SECTION("Unexpected value" ) {
-        err = dl::component_object( ON, DLIS_ROLE_RDSET, &name );
-        CHECK( err == DLIS_UNEXPECTED_VALUE );
+        err = dl::component_object( ON, dl::COMP_ROLE_RDSET, &name );
+        CHECK( err == dl::ERROR_UNEXPECTED_VALUE );
     }
 
     SECTION("Object: name") {
         err = dl::component_object( ON, role, &name );
-        CHECK( err == DLIS_OK );
+        CHECK( err == dl::ERROR_OK );
         CHECK( name );
     }
 
     SECTION("Object: ") {
         err = dl::component_object( O, role, &name );
-        CHECK( err == DLIS_OK );
+        CHECK( err == dl::ERROR_OK );
         CHECK( !name );
     }
 
     SECTION("Object: reserved values") {
         err = dl::component_object( ON, role, &name );
-        CHECK( err == DLIS_OK );
+        CHECK( err == dl::ERROR_OK );
         CHECK( name );
     }
 }
@@ -266,7 +266,7 @@ TEST_CASE("simple visible record length header", "[dlis_vrl]") {
     int version;
 
     const auto err = dl::vrl((char*) data, &len, &version);
-    CHECK( err == DLIS_OK );
+    CHECK( err == dl::ERROR_OK );
     CHECK( len == 34 );
     CHECK( version ==  1);
 }
@@ -321,7 +321,7 @@ TEST_CASE("find_vrl gracefully handles missing envelope", "[vrl]") {
     const auto file = std::vector< char >(400, '.');
     long long off;
     const auto err = dl::find_vrl(file.data(), file.size() / 2, &off);
-    CHECK(err == DLIS_NOTFOUND);
+    CHECK(err == dl::ERROR_NOTFOUND);
 }
 
 TEST_CASE("find_vrl gracefully handles truncated envelope", "[vrl]") {
@@ -340,7 +340,7 @@ TEST_CASE("find_vrl gracefully handles truncated envelope", "[vrl]") {
     long long off;
     const auto* ptr = reinterpret_cast< const char* >(file);
     const auto err = dl::find_vrl(ptr, sizeof(file), &off);
-    CHECK(err == DLIS_INCONSISTENT);
+    CHECK(err == dl::ERROR_INCONSISTENT);
 }
 
 TEST_CASE("simple logical record segment header", "[dlis_lrsh]") {
@@ -355,7 +355,7 @@ TEST_CASE("simple logical record segment header", "[dlis_lrsh]") {
     int type;
 
     const auto err = dl::lrsh((char*) data, &length, &attrs, &type);
-    CHECK( err == DLIS_OK );
+    CHECK( err == dl::ERROR_OK );
     CHECK( length == 36 );
     CHECK( attrs == 31 );
     CHECK( type == 2 );
@@ -371,8 +371,8 @@ TEST_CASE("Attribute descriptors", "[component][v1]") {
     const std::uint8_t CU  = 0x4A;
 
     int err = dl::component( A, &role );
-    CHECK( err == DLIS_OK );
-    CHECK( role == DLIS_ROLE_ATTRIB );
+    CHECK( err == dl::ERROR_OK );
+    CHECK( role == dl::COMP_ROLE_ATTRIB );
 
     SECTION("Attribute: LRV") {
         err = dl::component_attrib( LRV, role, &label,
@@ -380,7 +380,7 @@ TEST_CASE("Attribute descriptors", "[component][v1]") {
                                                &reprc,
                                                &units,
                                                &value );
-        CHECK( err == DLIS_OK );
+        CHECK( err == dl::ERROR_OK );
 
         CHECK(  label );
         CHECK( !count );
@@ -390,13 +390,13 @@ TEST_CASE("Attribute descriptors", "[component][v1]") {
     }
 
     SECTION("Attribute: L") {
-        err = dl::component_attrib( L, DLIS_ROLE_INVATR,
+        err = dl::component_attrib( L, dl::COMP_ROLE_INVATR,
                                        &label,
                                        &count,
                                        &reprc,
                                        &units,
                                        &value );
-        CHECK( err == DLIS_OK );
+        CHECK( err == dl::ERROR_OK );
 
         CHECK(  label );
         CHECK( !count );
@@ -411,7 +411,7 @@ TEST_CASE("Attribute descriptors", "[component][v1]") {
                                               &reprc,
                                               &units,
                                               &value );
-        CHECK( err == DLIS_OK );
+        CHECK( err == dl::ERROR_OK );
 
         CHECK( !label );
         CHECK(  count );
@@ -423,35 +423,35 @@ TEST_CASE("Attribute descriptors", "[component][v1]") {
 
 TEST_CASE("dlis comp string") {
     SECTION("DLIS_ROLE_ABSATR"){
-        CHECK( std::string(dl::component_str(DLIS_ROLE_ABSATR))
+        CHECK( std::string(dl::component_str(dl::COMP_ROLE_ABSATR))
               == "absent attribute");
     }
     SECTION("DLIS_ROLE_ATTRIB"){
-        CHECK( std::string(dl::component_str(DLIS_ROLE_ATTRIB))
+        CHECK( std::string(dl::component_str(dl::COMP_ROLE_ATTRIB))
               == "attribute");
     }
     SECTION("DLIS_ROLE_INVATR"){
-        CHECK( std::string(dl::component_str(DLIS_ROLE_INVATR))
+        CHECK( std::string(dl::component_str(dl::COMP_ROLE_INVATR))
               == "invariant attribute");
     }
     SECTION("DLIS_ROLE_OBJECT"){
-        CHECK( std::string(dl::component_str(DLIS_ROLE_OBJECT))
+        CHECK( std::string(dl::component_str(dl::COMP_ROLE_OBJECT))
               == "object");
     }
     SECTION("DLIS_ROLE_RESERV"){
-        CHECK( std::string(dl::component_str(DLIS_ROLE_RESERV))
+        CHECK( std::string(dl::component_str(dl::COMP_ROLE_RESERV))
               == "reserved");
     }
     SECTION("DLIS_ROLE_RDSET"){
-        CHECK( std::string(dl::component_str(DLIS_ROLE_RDSET))
+        CHECK( std::string(dl::component_str(dl::COMP_ROLE_RDSET))
               == "redundant set");
     }
     SECTION("DLIS_ROLE_RSET"){
-        CHECK( std::string(dl::component_str(DLIS_ROLE_RSET))
+        CHECK( std::string(dl::component_str(dl::COMP_ROLE_RSET))
               == "replacement set");
     }
     SECTION("DLIS_ROLE_SET"){
-        CHECK( std::string(dl::component_str(DLIS_ROLE_SET))
+        CHECK( std::string(dl::component_str(dl::COMP_ROLE_SET))
               == "set");
     }
     SECTION("uknown"){
@@ -514,7 +514,7 @@ TEST_CASE("fingerprint on empty string") {
             copy,
             buffer.data());
 
-        CHECK( err == DLIS_INVALID_ARGS );
+        CHECK( err == dl::ERROR_INVALID_ARGS );
     };
 
     SECTION("pass when id is empty") {
@@ -679,7 +679,7 @@ TEST_CASE_METHOD(
     const std::uint8_t attrs = dl::SEGATTR_PADDING;
     const auto err = dl::trim_record_segment(attrs, begin, end, &size);
 
-    CHECK(err == DLIS_BAD_SIZE);
+    CHECK(err == dl::ERROR_BAD_SIZE);
     CHECK(size == pad_len);
 }
 
@@ -696,7 +696,7 @@ TEST_CASE_METHOD(
                              ;
     const auto err = dl::trim_record_segment(attrs, begin, end, &size);
 
-    CHECK(err == DLIS_BAD_SIZE);
+    CHECK(err == dl::ERROR_BAD_SIZE);
     CHECK(size == expected);
 }
 
