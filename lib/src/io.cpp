@@ -150,11 +150,11 @@ bool hastapemark(stream& file) noexcept (false) {
 }
 
 bool record::isexplicit() const noexcept (true) {
-    return this->attributes & DLIS_SEGATTR_EXFMTLR;
+    return this->attributes & dl::SEGATTR_EXFMTLR;
 }
 
 bool record::isencrypted() const noexcept (true) {
-    return this->attributes & DLIS_SEGATTR_ENCRYPT;
+    return this->attributes & dl::SEGATTR_ENCRYPT;
 }
 
 namespace {
@@ -346,9 +346,9 @@ record& extract(stream& file, long long tell, long long bytes, record& rec,
          * can get away with reading a partial LRS as long as there is no
          * padding, checksum or trailing length.
          */
-        if ( not (attrs & DLIS_SEGATTR_PADDING) and
-             not (attrs & DLIS_SEGATTR_TRAILEN) and
-             not (attrs & DLIS_SEGATTR_CHCKSUM) and
+        if ( not (attrs & dl::SEGATTR_PADDING) and
+             not (attrs & dl::SEGATTR_TRAILEN) and
+             not (attrs & dl::SEGATTR_CHCKSUM) and
              remaining < len ) {
 
             to_read = remaining;
@@ -375,7 +375,7 @@ record& extract(stream& file, long long tell, long long bytes, record& rec,
          * caused by encryption
          */
 
-        const auto has_successor = attrs & DLIS_SEGATTR_SUCCSEG;
+        const auto has_successor = attrs & dl::SEGATTR_SUCCSEG;
         const long long bytes_left = bytes - rec.data.size();
         if (has_successor and bytes_left > 0) continue;
 
@@ -384,7 +384,7 @@ record& extract(stream& file, long long tell, long long bytes, record& rec,
          * extract those for checking consistency. Nothing else is interesting
          * to users, as it only describes how to read this specific segment
          */
-        static const auto fmtenc = DLIS_SEGATTR_EXFMTLR | DLIS_SEGATTR_ENCRYPT;
+        static const auto fmtenc = dl::SEGATTR_EXFMTLR | dl::SEGATTR_ENCRYPT;
         rec.attributes = attributes.front() & fmtenc;
         rec.type = types.front();
 
@@ -465,8 +465,8 @@ noexcept (false) {
             break;
         }
 
-        bool isexplicit      = attrs & DLIS_SEGATTR_EXFMTLR;
-        bool has_predecessor = attrs & DLIS_SEGATTR_PREDSEG;
+        bool isexplicit      = attrs & dl::SEGATTR_EXFMTLR;
+        bool has_predecessor = attrs & dl::SEGATTR_PREDSEG;
 
         if (not (has_predecessor)) {
             if (isexplicit and type == 0 and ofs.explicits.size()) {
@@ -492,7 +492,7 @@ noexcept (false) {
             }
         }
 
-        has_successor = attrs & DLIS_SEGATTR_SUCCSEG;
+        has_successor = attrs & dl::SEGATTR_SUCCSEG;
         lrs_offset += len;
 
         /*

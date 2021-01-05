@@ -450,14 +450,14 @@ int segment_attributes( std::uint8_t attrs,
                         int* has_checksum,
                         int* has_trailing_length,
                         int* has_padding ) {
-    *explicit_formatting   = attrs & DLIS_SEGATTR_EXFMTLR;
-    *has_predecessor       = attrs & DLIS_SEGATTR_PREDSEG;
-    *has_successor         = attrs & DLIS_SEGATTR_SUCCSEG;
-    *is_encrypted          = attrs & DLIS_SEGATTR_ENCRYPT;
-    *has_encryption_packet = attrs & DLIS_SEGATTR_ENCRPKT;
-    *has_checksum          = attrs & DLIS_SEGATTR_CHCKSUM;
-    *has_trailing_length   = attrs & DLIS_SEGATTR_TRAILEN;
-    *has_padding           = attrs & DLIS_SEGATTR_PADDING;
+    *explicit_formatting   = attrs & dl::SEGATTR_EXFMTLR;
+    *has_predecessor       = attrs & dl::SEGATTR_PREDSEG;
+    *has_successor         = attrs & dl::SEGATTR_SUCCSEG;
+    *is_encrypted          = attrs & dl::SEGATTR_ENCRYPT;
+    *has_encryption_packet = attrs & dl::SEGATTR_ENCRPKT;
+    *has_checksum          = attrs & dl::SEGATTR_CHCKSUM;
+    *has_trailing_length   = attrs & dl::SEGATTR_TRAILEN;
+    *has_padding           = attrs & dl::SEGATTR_PADDING;
     return DLIS_OK;
 }
 
@@ -559,11 +559,11 @@ int trim_record_segment(uint8_t descriptor,
     if (dist < 0) return DLIS_INVALID_ARGS;
 
     int trim = 0;
-    if (!(descriptor & DLIS_SEGATTR_ENCRYPT))
+    if (!(descriptor & dl::SEGATTR_ENCRYPT))
     {
-        if (descriptor & DLIS_SEGATTR_CHCKSUM) trim += 2;
-        if (descriptor & DLIS_SEGATTR_TRAILEN) trim += 2;
-        if (descriptor & DLIS_SEGATTR_PADDING) {
+        if (descriptor & dl::SEGATTR_CHCKSUM) trim += 2;
+        if (descriptor & dl::SEGATTR_TRAILEN) trim += 2;
+        if (descriptor & dl::SEGATTR_PADDING) {
             std::uint8_t pad_len = 0;
             dl::ushort_frombytes((end - 1) - trim, &pad_len);
             trim += pad_len;

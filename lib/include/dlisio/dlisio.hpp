@@ -333,7 +333,6 @@ int pack_varsize(const char* fmt, int* src, int* dst);
 
 int pack_size(const char* fmt, int* src, int* dst);
 
-} // namespace dl
 /*
  * A table of the record attributes, high bit first:
  *
@@ -356,17 +355,15 @@ int pack_size(const char* fmt, int* src, int* dst);
  */
 
 enum segment_attribute {
-    DLIS_SEGATTR_EXFMTLR = 1 << 7,
-    DLIS_SEGATTR_PREDSEG = 1 << 6,
-    DLIS_SEGATTR_SUCCSEG = 1 << 5,
-    DLIS_SEGATTR_ENCRYPT = 1 << 4,
-    DLIS_SEGATTR_ENCRPKT = 1 << 3,
-    DLIS_SEGATTR_CHCKSUM = 1 << 2,
-    DLIS_SEGATTR_TRAILEN = 1 << 1,
-    DLIS_SEGATTR_PADDING = 1 << 0,
+    SEGATTR_EXFMTLR = 1 << 7,
+    SEGATTR_PREDSEG = 1 << 6,
+    SEGATTR_SUCCSEG = 1 << 5,
+    SEGATTR_ENCRYPT = 1 << 4,
+    SEGATTR_ENCRPKT = 1 << 3,
+    SEGATTR_CHCKSUM = 1 << 2,
+    SEGATTR_TRAILEN = 1 << 1,
+    SEGATTR_PADDING = 1 << 0,
 };
-
-namespace dl {
 
 /*
  * Compute a fingerprint, a string-like representation of an object reference.

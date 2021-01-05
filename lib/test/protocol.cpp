@@ -587,7 +587,7 @@ TEST_CASE_METHOD(
     const auto expected = 2;
     int size = 0;
 
-    const std::uint8_t attrs = DLIS_SEGATTR_CHCKSUM;
+    const std::uint8_t attrs = dl::SEGATTR_CHCKSUM;
     const auto err = dl::trim_record_segment(attrs, begin, end, &size);
 
     CHECK(!err);
@@ -600,7 +600,7 @@ TEST_CASE_METHOD(
     const auto expected = 2;
     int size = 0;
 
-    const std::uint8_t attrs = DLIS_SEGATTR_TRAILEN;
+    const std::uint8_t attrs = dl::SEGATTR_TRAILEN;
     const auto err = dl::trim_record_segment(attrs, begin, end, &size);
 
     CHECK(!err);
@@ -613,8 +613,8 @@ TEST_CASE_METHOD(
     const auto expected = 4;
     int size = 0;
 
-    const std::uint8_t attrs = DLIS_SEGATTR_TRAILEN
-                             | DLIS_SEGATTR_CHCKSUM
+    const std::uint8_t attrs = dl::SEGATTR_TRAILEN
+                             | dl::SEGATTR_CHCKSUM
                              ;
     const auto err = dl::trim_record_segment(attrs, begin, end, &size);
 
@@ -630,7 +630,7 @@ TEST_CASE_METHOD(
     const auto expected = 8;
     int size = 0;
 
-    const std::uint8_t attrs = DLIS_SEGATTR_PADDING;
+    const std::uint8_t attrs = dl::SEGATTR_PADDING;
     const auto err = dl::trim_record_segment(attrs, begin, end, &size);
 
     CHECK(!err);
@@ -645,9 +645,9 @@ TEST_CASE_METHOD(
     const auto expected = pad_len + 4;
     int size = 0;
 
-    const std::uint8_t attrs = DLIS_SEGATTR_PADDING
-                             | DLIS_SEGATTR_CHCKSUM
-                             | DLIS_SEGATTR_TRAILEN
+    const std::uint8_t attrs = dl::SEGATTR_PADDING
+                             | dl::SEGATTR_CHCKSUM
+                             | dl::SEGATTR_TRAILEN
                              ;
     const auto err = dl::trim_record_segment(attrs, begin, end, &size);
 
@@ -662,7 +662,7 @@ TEST_CASE_METHOD(
     segment.back() = pad_len;
 
     int size = 0;
-    const std::uint8_t attrs = DLIS_SEGATTR_PADDING;
+    const std::uint8_t attrs = dl::SEGATTR_PADDING;
     const auto err = dl::trim_record_segment(attrs, begin, end, &size);
 
     CHECK(!err);
@@ -676,7 +676,7 @@ TEST_CASE_METHOD(
     segment.back() = pad_len;
 
     int size = 0;
-    const std::uint8_t attrs = DLIS_SEGATTR_PADDING;
+    const std::uint8_t attrs = dl::SEGATTR_PADDING;
     const auto err = dl::trim_record_segment(attrs, begin, end, &size);
 
     CHECK(err == DLIS_BAD_SIZE);
@@ -691,8 +691,8 @@ TEST_CASE_METHOD(
     segment[segment.size() - 3] = pad_len;
 
     int size = 0;
-    const std::uint8_t attrs = DLIS_SEGATTR_PADDING
-                             | DLIS_SEGATTR_CHCKSUM
+    const std::uint8_t attrs = dl::SEGATTR_PADDING
+                             | dl::SEGATTR_CHCKSUM
                              ;
     const auto err = dl::trim_record_segment(attrs, begin, end, &size);
 
@@ -708,9 +708,9 @@ TEST_CASE_METHOD(
     segment[segment.size() - 3] = pad_len;
 
     int size = 0;
-    const std::uint8_t attrs = DLIS_SEGATTR_PADDING
-                             | DLIS_SEGATTR_TRAILEN
-                             | DLIS_SEGATTR_ENCRYPT
+    const std::uint8_t attrs = dl::SEGATTR_PADDING
+                             | dl::SEGATTR_TRAILEN
+                             | dl::SEGATTR_ENCRYPT
                              ;
     const auto err = dl::trim_record_segment(attrs, begin, end, &size);
 
