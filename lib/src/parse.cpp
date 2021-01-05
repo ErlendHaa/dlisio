@@ -430,7 +430,7 @@ const char* cast( const char* xs, dl::dtime& dtime ) noexcept (true) {
                                   &dt.MN,
                                   &dt.S,
                                   &dt.MS );
-    dt.Y = dl::dlis_year_frombytes( dt.Y );
+    dt.Y += dl::YEAR_ZERO;
     swap( dtime, dt );
     return xs;
 }

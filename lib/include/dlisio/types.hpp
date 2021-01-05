@@ -44,13 +44,11 @@ const char* uvari_frombytes(const char*, int32_t* out);
 const char* ident_frombytes(const char*, int32_t* len, char* out);
 const char* ascii_frombytes(const char*, int32_t* len, char* out);
 
-constexpr int tz_lst = 0; // local standard
-constexpr int tz_dst = 1; // local daylight savings
-constexpr int tz_gmt = 2; // greenwich mean time
+constexpr int TZ_LST = 0; // local standard
+constexpr int TZ_DST = 1; // local daylight savings
+constexpr int TZ_GMT = 2; // greenwich mean time
 
 constexpr int YEAR_ZERO = 1900;
-int dlis_year_frombytes( int );
-
 const char* dtime_frombytes(const char*, int* Y,
                                          int* TZ,
                                          int* M,
@@ -131,7 +129,6 @@ void* ascii_tobytes(void*, int32_t len, const char* in, std::uint8_t);
 void* origin_tobytes(void*, int32_t);
 void* status_tobytes(void*, uint8_t);
 
-int dlis_year_tobytes( int );
 void* dtime_tobytes( void*, int Y,
                              int TZ,
                              int M,
@@ -168,7 +165,7 @@ void* attref_tobytes( void*, uint8_t ident1_len,
 void* units_tobytes( void*, uint8_t len, const char* in );
 
 /*
- * get the size (in bytes) of a particular data type. Expects a DLIS_UNORM or
+ * get the size (in bytes) of a particular data type. Expects a UNORM or
  * similar type code.
  *
  * Returns a negative value passed an invalid type code.

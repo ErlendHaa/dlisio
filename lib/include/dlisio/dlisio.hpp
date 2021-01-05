@@ -10,7 +10,7 @@ namespace dl {
 /*
  * Read Storage Unit Label (SUL).
  * seqnum, layout, maxlen and id are nullable
- * Assure beforehand that xs contains at least DLIS_SUL_SIZE bytes
+ * Assure beforehand that xs contains at least SUL_SIZE bytes
  */
 constexpr int SUL_SIZE = 80;
 int sul( const char* xs,
@@ -144,21 +144,21 @@ constexpr int DESCRIPTOR_SIZE = 1;
 int component( uint8_t descriptor, int* role );
 
 int component_set( uint8_t descriptor,
-                        int role,
-                        int* type,
-                        int* name );
+                   int role,
+                   int* type,
+                   int* name );
 
 int component_object( uint8_t descriptor,
-                           int role,
-                           int* obname );
+                      int role,
+                      int* obname );
 
 int component_attrib( uint8_t descriptor,
-                           int role,
-                           int* label,
-                           int* count,
-                           int* reprcode,
-                           int* units,
-                           int* value );
+                      int role,
+                      int* label,
+                      int* count,
+                      int* reprcode,
+                      int* units,
+                      int* value );
 
 const char* component_str( int );
 
@@ -189,7 +189,7 @@ const char* component_str( int );
  *
  * Example:
  *
- * dl::read_segment(&buffer, &segment_len);
+ * read_segment(&buffer, &segment_len);
  * int size = 0;
  * err = dl::trim_record_segment(attrs,
  *                               buffer.data,

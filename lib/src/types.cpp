@@ -185,10 +185,6 @@ const char* ascii_frombytes( const char* xs, std::int32_t* len, char* out ) {
     return xs + ln;
 }
 
-int dlis_year_frombytes( int Y ) {
-    return Y + dl::YEAR_ZERO;
-}
-
 const char* dtime_frombytes( const char* xs, int* Y,
                                              int* TZ,
                                              int* M,
@@ -599,10 +595,6 @@ void* origin_tobytes( void* xs, std::int32_t x ) {
 
 void* status_tobytes( void* xs, std::uint8_t x ) {
     return ushort_tobytes( xs, x );
-}
-
-int dlis_year_tobytes( int Y ) {
-    return Y - dl::YEAR_ZERO;
 }
 
 void* dtime_tobytes( void* xs, int Y,

@@ -1337,8 +1337,8 @@ TEST_CASE("date-time", "[type]") {
         dl::dtime_frombytes( input, &Y, &TZ, &M, &D, &H, &MN, &S, &MS );
 
         CHECK( Y  == 87 );
-        CHECK( dl::dlis_year_frombytes( Y ) == 1987 );
-        CHECK( TZ == dl::tz_dst );
+        CHECK( Y + dl::YEAR_ZERO == 1987 );
+        CHECK( TZ == dl::TZ_DST );
         CHECK( M  == 4 );
         CHECK( D  == 19 );
         CHECK( H  == 21 );
@@ -1350,8 +1350,8 @@ TEST_CASE("date-time", "[type]") {
     SECTION("from native") {
         bytes< 8 > x;
         const void* end = dl::dtime_tobytes( &x,
-                                             dl::dlis_year_tobytes( 1987 ),
-                                             dl::tz_dst,
+                                             1987 - dl::YEAR_ZERO,
+                                             dl::TZ_DST,
                                              4,
                                              19,
                                              21,

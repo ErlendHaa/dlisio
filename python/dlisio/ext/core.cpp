@@ -583,7 +583,7 @@ void read_curve_sample(const char* f, const char*& ptr, const char* end,
     if (*f == dl::FMT_DTIME) {
         int Y, TZ, M, D, H, MN, S, MS;
         ptr = dl::dtime_frombytes(ptr, &Y, &TZ, &M, &D, &H, &MN, &S, &MS);
-        Y = dl::dlis_year_frombytes(Y);
+        Y += dl::YEAR_ZERO;
         const auto US = MS * 1000;
 
         PyObject* p;
