@@ -139,6 +139,9 @@ script:
     - build_wheel python $PLAT
     - install_run $PLAT
     - mv wheelhouse python/dist
+cache:
+  directories:
+     - python/dist
 
 before_deploy:
     - pushd python
