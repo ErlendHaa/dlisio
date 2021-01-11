@@ -218,7 +218,7 @@ noexcept (false) {
 
 }
 
-void stream::close() {
+void stream::close() noexcept (true) {
     lfp_close(this->f);
 }
 

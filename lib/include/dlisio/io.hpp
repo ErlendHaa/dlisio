@@ -23,8 +23,6 @@ class stream {
 public:
     explicit stream( lfp_protocol* p ) : f(p) {};
 
-    void close();
-    int eof() const noexcept (true);
     lfp_protocol* protocol() const noexcept (true);
 
     /* Seek within the logical domain of the current file. I.e. seeks are
@@ -39,6 +37,8 @@ public:
 
     std::int64_t read( char* dst, int n ) noexcept (false);
 
+    void close() noexcept (true);
+    int eof() const noexcept (true);
 private:
     lfp_protocol* f;
 };
