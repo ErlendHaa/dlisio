@@ -28,8 +28,12 @@ public:
     lfp_protocol* protocol() const noexcept (true);
 
     void seek( std::int64_t offset ) noexcept (false);
-    std::int64_t tell() const noexcept(true);
-    std::int64_t absolute_tell() const noexcept(false);
+
+    /* The tell reported by the current (outer-most) lfp_protocol */
+    std::int64_t ltell() const noexcept(true);
+
+    /* The tell reported by the inner-most lfp_protocol */
+    std::int64_t ptell() const noexcept(false);
 
     std::int64_t read( char* dst, int n ) noexcept (false);
 
