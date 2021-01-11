@@ -1065,7 +1065,7 @@ PYBIND11_MODULE(core, m) {
 
     py::class_< dl::stream >( m, "stream" )
         .def_property_readonly("ptell", &dl::stream::ptell)
-        .def("seek", &dl::stream::seek)
+        .def("lseek", &dl::stream::lseek)
         .def("eof", &dl::stream::eof)
         .def( "close", &dl::stream::close )
         .def( "get", []( dl::stream& s, py::buffer b, long long off, int n ) {
@@ -1078,7 +1078,7 @@ PYBIND11_MODULE(core, m) {
                 ;
                 throw std::invalid_argument( msg );
             }
-            s.seek( off );
+            s.lseek( off );
             s.read( static_cast< char* >( info.ptr ), n );
             return b;
         })

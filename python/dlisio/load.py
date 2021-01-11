@@ -122,7 +122,7 @@ def load(path, error_handler = None):
         #     > ... Visible Records cannot intersect more than one Logical File.
         while True:
             if tapemarks: offset -= tifsize
-            stream.seek(offset)
+            stream.lseek(offset)
             if tapemarks: stream = core.open_tif(stream)
             stream = core.open_rp66(stream)
 

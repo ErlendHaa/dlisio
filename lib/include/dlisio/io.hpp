@@ -27,7 +27,9 @@ public:
     int eof() const noexcept (true);
     lfp_protocol* protocol() const noexcept (true);
 
-    void seek( std::int64_t offset ) noexcept (false);
+    /* Seek within the logical domain of the current file. I.e. seeks are
+     * performed with the outer-most lfp_protocol. */
+    void lseek( std::int64_t offset ) noexcept (false);
 
     /* The tell reported by the current (outer-most) lfp_protocol */
     std::int64_t ltell() const noexcept(true);

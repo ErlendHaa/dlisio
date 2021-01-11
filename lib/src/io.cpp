@@ -65,7 +65,7 @@ long long findsul( stream& file ) noexcept (false) {
     long long offset;
 
     char buffer[ 200 ];
-    file.seek(0);
+    file.lseek(0);
     auto bytes_read = file.read(buffer, 200);
 
     const auto err = dlis_find_sul(buffer, bytes_read, &offset);
@@ -99,7 +99,7 @@ long long findvrl( stream& file, long long from ) noexcept (false) {
     long long offset;
 
     char buffer[ 200 ];
-    file.seek(from);
+    file.lseek(from);
     auto bytes_read = file.read(buffer, 200);
     const auto err = dlis_find_vrl(buffer, bytes_read, &offset);
 
@@ -128,7 +128,7 @@ long long findvrl( stream& file, long long from ) noexcept (false) {
 
 bool hastapemark(stream& file) noexcept (false) {
     constexpr int TAPEMARK_SIZE = 12;
-    file.seek(0);
+    file.lseek(0);
 
     char buffer[ TAPEMARK_SIZE ];
     auto bytes_read = file.read(buffer, TAPEMARK_SIZE);
@@ -230,7 +230,7 @@ int stream::eof() const noexcept (true) {
     return lfp_eof(this->f);
 }
 
-void stream::seek( std::int64_t offset ) noexcept (false) {
+void stream::lseek( std::int64_t offset ) noexcept (false) {
     const auto err = lfp_seek(this->f, offset);
     switch (err) {
         case LFP_OK:
@@ -316,7 +316,7 @@ record& extract(stream& file, long long tell, long long bytes, record& rec,
     bool consistent = true;
 
     rec.data.clear();
-    file.seek(tell);
+    file.lseek(tell);
 
     while (true) {
         char buffer[ DLIS_LRSH_SIZE ];
@@ -412,7 +412,7 @@ noexcept (false) {
     int len = 0;
     auto read = 0;
 
-    file.seek(lrs_offset);
+    file.lseek(lrs_offset);
 
     while (true) {
         try {
@@ -483,7 +483,7 @@ noexcept (false) {
                 }
 
                 // seek to assure handle is in the right place to read next LF
-                file.seek( lrs_offset );
+                file.lseek( lrs_offset );
                 break;
             }
         }
@@ -503,7 +503,7 @@ noexcept (false) {
          */
 
         char tmp;
-        file.seek(lrs_offset - 1);
+        file.lseek(lrs_offset - 1);
         try {
             file.read(&tmp, 1);
         } catch (const std::runtime_error& e) {
