@@ -218,10 +218,6 @@ noexcept (false) {
 
 }
 
-stream::stream( lfp_protocol* f ) noexcept (false){
-    this->f = f;
-}
-
 void stream::close() {
     lfp_close(this->f);
 }

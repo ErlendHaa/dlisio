@@ -21,7 +21,7 @@ namespace dl {
  */
 class stream {
 public:
-    explicit stream( lfp_protocol* p ) noexcept (false);
+    explicit stream( lfp_protocol* p ) : f(p) {};
 
     void close();
     int eof() const noexcept (true);
