@@ -5,7 +5,7 @@
 
 #include <dlisio/stream.hpp>
 
-namespace dl {
+namespace dlis {
 
 lfp_protocol* stream::protocol() const noexcept (true) {
     return this->f;
@@ -80,4 +80,4 @@ int stream::eof() const noexcept (true) {
     return lfp_eof(this->f);
 }
 
-}
+} // namespace dlis

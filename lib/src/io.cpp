@@ -18,7 +18,9 @@
 #include <dlisio/stream.hpp>
 #include <dlisio/exception.hpp>
 
-namespace dl {
+namespace dl = dlis;
+
+namespace dlis {
 
 stream open(const std::string& path, std::int64_t offset) noexcept (false) {
     auto* file = std::fopen(path.c_str(), "rb");
