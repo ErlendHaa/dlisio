@@ -3,7 +3,7 @@
 
 #include <lfp/lfp.h>
 
-namespace dlis {
+namespace dlisio {
 
 /* Stream - wrapper for lfp_protocol
  *
@@ -34,6 +34,6 @@ private:
     lfp_protocol* f;
 };
 
-} // namespace dlis
+} // namespace dlisio
 
 #endif // DLISIO_STREAM_HPP
