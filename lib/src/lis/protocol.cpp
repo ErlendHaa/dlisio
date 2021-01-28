@@ -12,7 +12,7 @@
 #include <dlisio/lis/protocol.hpp>
 #include <dlisio/lis/types.h>
 #include <dlisio/lis/types.hpp>
-#include <dlisio/lis/packf.h>
+#include <dlisio/lis/pack.h>
 #include <dlisio/dlis/dlisio.h> // DLIS_OK etc for pack, should not be here
 
 namespace dlisio { namespace lis79 {
@@ -660,7 +660,7 @@ int lis_pack_size(const char* fmt, int* src, int* dst) {
             case LIS_FMT_F32    : size += LIS_SIZEOF_F32   ; break;
             case LIS_FMT_F32LOW : size += LIS_SIZEOF_F32LOW; break;
             case LIS_FMT_F32FIX : size += LIS_SIZEOF_F32FIX; break;
-            case LIS_FMT_BYTE   : size += LIS_SIZEOF_STRING; break;
+            case LIS_FMT_BYTE   : size += LIS_SIZEOF_BYTE  ; break;
             // string and mask cannot be uses as type in frames
             default:
                 return DLIS_INVALID_ARGS;

@@ -85,6 +85,7 @@ add_executable(test-lis test/testsuite.cpp
                         test/lis/types.cpp
                         test/lis/protocol.cpp
                         test/lis/io.cpp
+                        test/lis/pack.cpp
 )
 target_link_libraries(test-lis dlisio catch2)
 add_test(NAME lis-core COMMAND test-lis)
