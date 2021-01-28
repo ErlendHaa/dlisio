@@ -443,6 +443,75 @@ std::string dfs_fmtstr( const dfsr& dfs ) noexcept (false) {
     return fmt;
 }
 
+file_record parse_file_record(const record& rec ) noexcept (false) {
+    const auto type = rec.info.type();
+    if ( not (type == lis::record_type::fileheader or
+              type == lis::record_type::filetrailer) ) {
+
+        throw std::runtime_error("Cannot parse {} as filerecord");
+    }
+
+    if ( rec.data.size() < lis::file_record::size ) {
+        //TODO log when too many bytes
+        const auto msg = "Unable to parse record. "
+                         "File Records are 56 Bytes, raw record is only {}";
+        throw std::runtime_error(fmt::format(msg, rec.data.size()));
+    }
+
+    constexpr int BLANK = 1;
+
+    const auto* cur = rec.data.data();
+    const auto* end = cur + rec.data.size();
+
+    lis::file_record filerec;
+    filerec.info = rec.info;
+
+    cur = cast(cur, filerec.file_name, 10);
+    cur += 2 * BLANK;
+
+    cur = cast(cur, filerec.service_sublvl_name, 6 );
+    cur = cast(cur, filerec.version_number     , 8 );
+    cur = cast(cur, filerec.date_of_generation , 8 );
+    cur += 1 * BLANK;
+
+    cur = cast(cur, filerec.max_pr_length, 5 );
+    cur += 2 * BLANK;
+
+    cur = cast(cur, filerec.file_type, 2 );
+    cur += 2 * BLANK;
+
+    cur = cast(cur, filerec.optional_file_name, 10);
+
+    return filerec;
+}
+
+lis::string file_record::prev_file_name() const noexcept (false) {
+    if (this->info.type() == lis::record_type::filetrailer ) {
+        const auto msg = "prev_file_name is not defined for filetrailer "
+                         "records.";
+        throw std::runtime_error(msg);
+
+    } else if (this->info.type() == lis::record_type::fileheader ) {
+        return this->optional_file_name;
+    }  else {
+        // This should be impossible
+        throw std::runtime_error("Invalid record type");
+    }
+}
+
+lis::string file_record::next_file_name() const noexcept (false) {
+    if (this->info.type() == lis::record_type::filetrailer ) {
+        return this->optional_file_name;
+    } else if (this->info.type() == lis::record_type::fileheader ) {
+        const auto msg = "next_file_name is not defined for fileheader "
+                         "records.";
+        throw std::runtime_error(msg);
+    }  else {
+        // This should be impossible
+        throw std::runtime_error("Invalid record type");
+    }
+}
+
 } // namespace lis79
 
 } // namespace dlisio

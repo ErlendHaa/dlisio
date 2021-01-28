@@ -26,27 +26,54 @@ class logical_file():
     def __repr__(self):
         return 'logical_file'
 
-    @property
     def header(self):
         """ Logical File Header
 
-        """
-        pass
-
-    @property
-    def trailer(self):
-        """ Logical File Trailer
-
-        Returns the Logical File Trailer - if present. Othervise returns None.
+        Reads and parses the Logical File Header _from disk_ - if present.
 
         Returns
         -------
 
-        trailer : dlisio.core.log_file_trailer or None
-
-
+        header : dlisio.core.filerecord or None
         """
-        pass
+        rectype = core.lis_rectype.fileheader
+        info = [x for x in self.explicits if x.type == rectype]
+
+        if len(info) > 1:
+            msg =  'Multiple File Header, should only be one.'
+            msg += 'Use parse_record to read them all'
+            raise ValueError(msg)
+
+        if len(info) == 0:
+            logging.info("No File Header Record in Logical File")
+            return None
+
+        return self.parse_record(info[0])
+
+
+    def trailer(self):
+        """ Logical File Trailer
+
+        Reads and parses the Logical File Trailer _from disk_ - if present.
+
+        Returns
+        -------
+
+        trailer : dlisio.core.filerecord or None
+        """
+        rectype = core.lis_rectype.filetrailer
+        info = [x for x in self.explicits if x.type == rectype]
+
+        if len(info) > 1:
+            msg =  'Multiple File Trailer, should only be one.'
+            msg += 'Use parse_record to read them all'
+            raise ValueError(msg)
+
+        if len(info) == 0:
+            logging.info("No File Trailer Record in Logical File")
+            return None
+
+        return self.parse_record(info[0])
 
 
     def parse_record(self, recinfo):
@@ -54,30 +81,22 @@ class logical_file():
         rec = self.io.read_record(recinfo)
 
         rtype = recinfo.type
-        if   rtype == core.rectype.format_spec: return core.parse_dfsr(rec)
-        elif rtype == core.rectype.reelheader:  return core.parse_reelheader(rec)
+        if   rtype == core.lis_rectype.format_spec: return core.parse_dfsr(rec)
+        elif rtype == core.lis_rectype.fileheader:  return core.parse_file_record(rec)
+        elif rtype == core.lis_rectype.filetrailer: return core.parse_file_record(rec)
         else:
-            raise NotImplementedError("No parsing rule for  {}".format(rtype))
+            raise NotImplementedError("No parsing rule for {}".format(rtype))
 
 
     @property
     def explicits(self):
         return self.index.explicits()
 
-    def dfsr(self):
+    def dataformatspec(self):
         # TODO duplication checking
-        # TODO Maybe we want a factory function in c++ for extraction (and
-        # parsing) all records of a given type. To avoid crossing the language
-        # barrier so much
-        parsed = []
-        for recinfo in self.explicits:
-            if recinfo.type != core.lis_rectype.format_spec: continue
-            print(recinfo)
-            rec = self.io.read_record(recinfo)
-            print(rec)
-            parsed.append( core.parse_dfsr(rec) )
-
-        return parsed
+        rectype = core.lis_rectype.format_spec
+        info = [x for x in self.explicits if x.type == rectype]
+        return [self.parse_record(x) for x in info]
 
 class physical_reel(tuple):
     def __enter__(self):
@@ -92,4 +111,3 @@ class physical_reel(tuple):
 
     def __repr__(self):
         return 'physical_reel(logical files: {})'.format(len(self))
-

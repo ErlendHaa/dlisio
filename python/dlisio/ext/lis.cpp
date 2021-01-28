@@ -395,6 +395,21 @@ void init_lis_extension(py::module_ &m) {
         .def_readonly( "specs",   &lis::dfsr::specs   )
     ;
 
+    py::class_< lis::file_record >( m, "file_record" )
+        .def_readonly( "file_name",           &lis::file_record::file_name           )
+        .def_readonly( "service_sublvl_name", &lis::file_record::service_sublvl_name )
+        .def_readonly( "version_number",      &lis::file_record::version_number      )
+        .def_readonly( "date_of_generation",  &lis::file_record::date_of_generation  )
+        .def_readonly( "max_pr_length",       &lis::file_record::max_pr_length       )
+        .def_readonly( "file_type",           &lis::file_record::file_type           )
+        .def_property_readonly( "prev_file_name", &lis::file_record::prev_file_name  )
+        .def_property_readonly( "next_file_name", &lis::file_record::next_file_name  )
+        .def( "__repr__", [](const lis::file_record& x) {
+            return "lis::file_record";
+        })
+    ;
+
+    m.def( "parse_file_record", &lis::parse_file_record );
     m.def( "parse_dfsr", &lis::parse_dfsr );
     m.def("dfs_formatstring", &lis::dfs_fmtstr);
     /* end - parse.hpp */

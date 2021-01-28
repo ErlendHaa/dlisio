@@ -297,6 +297,24 @@ dfsr parse_dfsr( const lis::record& ) noexcept (false);
 
 std::string dfs_fmtstr( const dfsr& dfs ) noexcept (false);
 
+
+struct file_record : parsed_record {
+    lis::string file_name;
+    lis::string service_sublvl_name;
+    lis::string version_number;
+    lis::string date_of_generation;
+    lis::string max_pr_length;
+    lis::string file_type;
+    lis::string optional_file_name;
+
+    lis::string prev_file_name() const noexcept (false);
+    lis::string next_file_name() const noexcept (false);
+
+    static constexpr const int size = 56;
+};
+
+file_record parse_file_record(const record& ) noexcept (false);
+
 } // namespace lis79
 
 } // namespace dlisio
