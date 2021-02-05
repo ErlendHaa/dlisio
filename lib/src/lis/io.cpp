@@ -502,9 +502,11 @@ noexcept (false) {
     try {
         device.seek( 0 );
     } catch ( ... ) {
+        const auto poffset = device.poffset();
+        device.close();
         const auto msg = "lis::open: "
                          "Could not rewind lis::iodevice to ptell {}";
-        throw dlisio::io_error( fmt::format(msg, offset ));
+        throw dlisio::io_error( fmt::format(msg, poffset ));
     }
 
     return device;
