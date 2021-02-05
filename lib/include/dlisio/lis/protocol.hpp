@@ -223,9 +223,11 @@ struct entry_block {
     lis::byte reprc;
 
     value_type value;
+
+    static constexpr const int fixed_size = 3;
 };
 
-entry_block read_entry_block(const record&, std::size_t*) noexcept (false);
+entry_block read_entry_block(const record&, std::size_t) noexcept (false);
 
 struct spec_block {
     lis::string mnemonic;
@@ -236,31 +238,11 @@ struct spec_block {
     lis::i16    ssize;
     lis::byte   samples;
     lis::representation_code reprc;
-};
-
-/** Data Specification Block - subtype 0 (DSB0)
- */
-struct spec_block0 : spec_block {
-    lis::byte api_log_type;
-    lis::byte api_curve_type;
-    lis::byte api_curve_class;
-    lis::byte api_modifier;
-    lis::byte process_level;
 
     static constexpr const int size = 40;
 };
 
-/** Data Specification Block - subtype 1 (DSB1)
- */
-struct spec_block1 : public spec_block {
-    lis::i32  api_codes;
-    lis::mask process_indicators;
-
-    static constexpr const int size = 40;
-};
-
-spec_block0 read_spec_block0(const record&, std::size_t*) noexcept (false);
-spec_block1 read_spec_block1(const record&, std::size_t*) noexcept (false);
+spec_block read_spec_block(const record&, std::size_t) noexcept (false);
 
 /** Data Format Specification Record (DFSR)
  *

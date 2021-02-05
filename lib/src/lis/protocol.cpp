@@ -12,8 +12,18 @@
 namespace dlisio { namespace lis79 {
 namespace lis = dlisio::lis79;
 
-constexpr const int lis::spec_block1::size;
-constexpr const int lis::spec_block0::size;
+/* Definitions of static members
+
+ * In C++11 static members needs to be defined outside the class definition in
+ * order to be odr-used [1]. These definisions can go away if we ever upgrade to
+ * C++17 or higher.
+ *
+ * [1] https://en.cppreference.com/w/cpp/language/static
+ */
+constexpr const int lis::lrheader::size;
+constexpr const int lis::prheader::size;
+constexpr const int lis::spec_block::size;
+constexpr const int lis::entry_block::fixed_size;
 
 bool is_padbytes(const char* xs, std::uint16_t size) {
     constexpr int PADBYTE_NULL  = 0x00;
@@ -48,8 +58,8 @@ lis::prheader read_prh(char* xs) noexcept (false) {
     #endif
 
     lis::prheader head;
-    std::memcpy(&head.length,      buffer + 0, sizeof(std::uint16_t));
-    std::memcpy(&head.attributes,  buffer + 2, sizeof(std::uint16_t));
+    std::memcpy(&head.length,     buffer + 0, sizeof(std::uint16_t));
+    std::memcpy(&head.attributes, buffer + 2, sizeof(std::uint16_t));
     return head;
 }
 
@@ -275,20 +285,17 @@ noexcept (false) {
 
 } // namespace
 
-lis::entry_block read_entry_block( const lis::record& rec, std::size_t* offset )
+lis::entry_block read_entry_block( const lis::record& rec, std::size_t offset )
 noexcept (false) {
-    constexpr int SB_MINIMUM_SIZE = 3;
-
-    const auto* cur = rec.data.data();
+    const auto* cur = rec.data.data() + offset;
     const auto* end = cur + rec.data.size();
 
-    if (offset) cur += *offset;
-
-    if ( std::distance(cur, end) < SB_MINIMUM_SIZE ) {
+    if ( std::distance(cur, end) < 3 ) {
         const auto msg = "lis::entry_block: "
                          "{} bytes left in record, expected at least {} more";
         const auto left = std::distance(cur, end);
-        throw std::runtime_error(fmt::format(msg, left, SB_MINIMUM_SIZE));
+        throw std::runtime_error( fmt::format(
+                    msg, left, lis::entry_block::fixed_size) );
     }
 
     lis::entry_block entry;
@@ -305,9 +312,7 @@ noexcept (false) {
     }
 
     auto repr = static_cast< lis::representation_code>( lis::decay(entry.reprc) );
-    cur = element(cur, entry.size, repr, entry.value);
-
-    if (offset) *offset += (SB_MINIMUM_SIZE + lis::decay( entry.size ));
+    element(cur, entry.size, repr, entry.value);
 
     return entry;
 }
@@ -315,12 +320,10 @@ noexcept (false) {
 namespace {
 
 template < typename T >
-void read_spec_block(const lis::record& rec, std::size_t* offset, T& spec )
+void read_spec_block( const lis::record& rec, std::size_t offset, T& spec )
 noexcept (false) {
-    const auto* cur = rec.data.data();
+    const auto* cur = rec.data.data() + offset;
     const auto* end = cur + rec.data.size();
-
-    if (offset) cur += *offset;
 
     if ( std::distance(cur, end) < T::size ) {
         const auto msg = "lis::spec_block: "
@@ -329,6 +332,8 @@ noexcept (false) {
         throw std::runtime_error(fmt::format(msg, left, T::size));
     }
 
+    constexpr int padbyte = 1;
+
     cur = cast( cur, spec.mnemonic,         4 );
     cur = cast( cur, spec.service_id,       6 );
     cur = cast( cur, spec.service_order_nr, 8 );
@@ -336,24 +341,18 @@ noexcept (false) {
     cur += 4;                       // Skip API codes
     cur = cast( cur, spec.filenr );
     cur = cast( cur, spec.ssize );
-    cur += 3;                       // Skip padding (and process level)
+    cur += (2*padbyte);             // Skip padding
+    cur += 1;                       // Skip process level
     cur = cast( cur, spec.samples );
-    cur = cast( cur, spec.reprc );
-    cur += 5;                       // Skip padding / Process indicators
-
-    if (offset) *offset += T::size;
+    cast( cur, spec.reprc );
+    // Skip 1 padbyte
+    // Skip last 4 bytes (Process indicators)
 }
 
 } // namespace
 
-spec_block0 read_spec_block0(const record& rec, std::size_t* offset) noexcept (false) {
-    lis::spec_block0 spec;
-    read_spec_block(rec, offset, spec);
-    return spec;
-}
-
-spec_block1 read_spec_block1(const record& rec, std::size_t* offset) noexcept (false) {
-    lis::spec_block1 spec;
+spec_block read_spec_block(const record& rec, std::size_t offset) noexcept (false) {
+    lis::spec_block spec;
     read_spec_block(rec, offset, spec);
     return spec;
 }
@@ -361,13 +360,13 @@ spec_block1 read_spec_block1(const record& rec, std::size_t* offset) noexcept (f
 lis::dfsr parse_dfsr( const lis::record& rec ) noexcept (false) {
     lis::dfsr formatspec;
     formatspec.info = rec.info; //carry over the header information of the record
-
-    std::uint8_t subtype = 0;
     std::size_t offset = 0;
 
     while (true) {
-        const auto entry = read_entry_block(rec, &offset);
-        const auto type  = static_cast< lis::entry_type >( lis::decay(entry.type) );
+        const auto entry = read_entry_block(rec, offset);
+        const auto type  = static_cast<lis::entry_type>(lis::decay(entry.type));
+
+        offset += lis::entry_block::fixed_size + lis::decay(entry.size);
 
         formatspec.entries.push_back( std::move(entry) );
         // TODO swich on subtype based on entry block
@@ -377,11 +376,8 @@ lis::dfsr parse_dfsr( const lis::record& rec ) noexcept (false) {
     }
 
     while ( offset < rec.data.size() ) {
-        if (subtype == 0) {
-            formatspec.specs.emplace_back( read_spec_block0(rec, &offset) );
-        } else {
-            formatspec.specs.emplace_back( read_spec_block1(rec, &offset) );
-        }
+        formatspec.specs.emplace_back( read_spec_block(rec, offset) );
+        offset += lis::spec_block::size;
     }
 
     return formatspec;
