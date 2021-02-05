@@ -109,8 +109,8 @@ std::int64_t iodevice::psize() const noexcept (false) {
         throw std::runtime_error(msg);
     }
     if ( this->truncated() ) {
-        const auto msg = "iodevice: filesize unknown, file is truncated";
-        throw std::runtime_error(msg);
+        const auto msg = "iodevice: filesize unknown, file is truncated ({})";
+        throw std::runtime_error(fmt::format(msg, this->trunk_msg));
     }
     return this->plength;
 }
@@ -259,9 +259,10 @@ lis::prheader iodevice::read_physical_header() noexcept (false) {
     std::size_t mvl = (head.attributes & lis::prheader::predces) ? 4 : 6;
 
     if ( head.length < mvl ) {
+        const auto ptell = this->ptell();
         std::string where = "iodevice::read_physical_header: ";
-        std::string what  = "Too short record length (was {} bytes)";
-        throw std::runtime_error(where + fmt::format(what, head.length));
+        std::string what  = "Too short record length (was {} bytes) (ptell = {})";
+        throw std::runtime_error(where + fmt::format(what, head.length, ptell));
     }
 
     return head;
@@ -377,7 +378,7 @@ record_index iodevice::index_records() noexcept (true) {
              * report EOF until we try to read _past_ the last byte.
              */
             break;
-        } catch ( ... ) {
+        } catch ( const std::exception& e ) {
             /* For now just treat any other error as a truncation error - which
              * it probably means anyway. However, the error should in the future
              * be properly communitcated downstream, either by logging it or
@@ -386,6 +387,7 @@ record_index iodevice::index_records() noexcept (true) {
 
             //TODO log this error
             this->is_truncated = true;
+            this->trunk_msg = e.what();
             break;
         }
 

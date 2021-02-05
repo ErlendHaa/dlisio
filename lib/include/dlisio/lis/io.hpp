@@ -219,6 +219,7 @@ private:
     std::int64_t plength;
     bool is_indexed   = false;
     bool is_truncated = false;
+    std::string trunk_msg = "";
 };
 
 /** Factory function for creating an iodevice
