@@ -8,6 +8,44 @@ from . import plumbing
 from . import settings
 
 class physicalfile(tuple):
+    """ A Physical File
+
+    A physical DLIS file, i.e. a regular file on disk, is segmented into
+    multiple Logical Files (LF). Think of a DLIS file as a folder-structure.
+    The DLIS-file itself is the folder, and the Logical Files are the actual
+    files::
+
+        your_file.lis
+        |
+        |-> Logical File 0
+        |-> Logical File 1
+        |-> Logical File 2
+        ...
+        |-> Logical File n
+
+
+    Each LF is a logical grouping of log data and metadata related the
+    acqsition of those logs. The LF's are independed of each other and can be
+    thought off as seperate files.
+
+    This class is essentially a tuple of all the Logical Files in a regular
+    file, and is what's being returned by :func:`dlisio.load`. The LFs can be
+    unpacked following standard Python tuple unpacking rules.
+
+    Notes
+    -----
+
+    The DLIS-specification, rp66v1, opens up for a Logical File to span
+    multiple physical files. dlisio does not currently have cross-file support.
+    However, dlisio will read such files just fine, but without any semantics
+    for tying the LF from one file to the next.
+
+    See Also
+    --------
+
+    dlisio.load : Open and Index a DLIS-file
+    dlisio.logicalfile : Interface for working with a single Logical File
+    """
     def __enter__(self):
         return self
 
@@ -15,6 +53,7 @@ class physicalfile(tuple):
         self.close()
 
     def close(self):
+        """ Close the file handles of all Logical Files """
         for f in self:
             f.close()
 
@@ -22,6 +61,11 @@ class physicalfile(tuple):
         return 'physicalfile(logical files: {})'.format(len(self))
 
     def describe(self, width=80, indent=''):
+        """ Describe
+
+        Returns a human-readable and printable summary of the current class
+        instance.
+        """
         buf = StringIO()
         plumbing.describe_header(buf, 'Physical File', width, indent)
 
