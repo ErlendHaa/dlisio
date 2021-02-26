@@ -38,11 +38,11 @@ File Header (FHLR)
         Logical Tape. The file name consists of two parts:
 
         **Service name** - A 6 character Name of the service or program that
-        created the tape (6 chars)
+        created the tape
 
         **File number** - A 3 character counter that counts the files in a logical tape
 
-        The service name and file number is seperated by a dot (".")
+        The service name and file number are seperated by a dot (".")
 
         :type: str
 
@@ -92,7 +92,7 @@ File Trailer (FTLR)
     File Trailer Logical Record (FTLR)
 
     The FTLR is an optional last record of a Logical File. It's identical to
-    the :class:`dlisio.core.file_header` with exeption of the attribute
+    the :class:`dlisio.core.file_header` with exception of the attribute
     :attr:`dlisio.core.file_header.prev_file_name`, which in the trailer is replaced with
     :attr:`next_file_name`.
 
@@ -149,7 +149,7 @@ Tape Header (THLR)
 
     .. attribute:: comment
 
-        Any relevant remarks concerning the Logical Tape of the content of it
+        Any relevant remarks concerning the Logical Tape or the content of it
 
         :type: str
 
@@ -167,7 +167,7 @@ Tape Trailer (TTLR)
     Tape Trailer Logical Record (TTLR)
 
     The TTLR is optional. It's identical to the
-    :class:`dlisio.core.tape_header` with exeption of the attribute
+    :class:`dlisio.core.tape_header` with exception of the attribute
     :attr:`dlisio.core.tape_header.prev_tape_name`, which in the trailer is
     replaced with :attr:`next_tape_name`.
 
@@ -178,6 +178,9 @@ Tape Trailer (TTLR)
     .. attribute:: continuation_number
     .. attribute:: comment
     .. attribute:: next_tape_name
+
+        An ID that can be used to identify the next Logical Tape, where
+        applicable. Should be blank for the last tape
 
         :type: str
 
@@ -225,7 +228,7 @@ Reel Header (RHLR)
 
     .. attribute:: comment
 
-        Any relevant remarks releated to the physical reel of tape
+        Any relevant remarks related to the physical reel of tape
 
     .. attribute:: prev_reel_name
 
@@ -241,7 +244,7 @@ Reel Trailer (RTLR)
     Reel Trailer Logical Record (RTLR)
 
     The RTLR is optional. It's identical to the
-    :class:`dlisio.core.reel_header` with exeption of the attribute
+    :class:`dlisio.core.reel_header` with exception of the attribute
     :attr:`dlisio.core.reel_header.prev_reel_name`, which in the trailer is
     replaced with :attr:`next_reel_name`.
 
@@ -252,6 +255,9 @@ Reel Trailer (RTLR)
     .. attribute:: continuation_number
     .. attribute:: comment
     .. attribute:: next_reel_name
+
+        An ID that can be used to identify the next Physical Reel, where
+        applicable.
 
         :type: str
 

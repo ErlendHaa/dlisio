@@ -34,9 +34,9 @@ Lets have a closer look at one of the Logical Files returned by load:
 The Logical File, ``f``, is an instance of :class:`dlisio.lis.logical_file`
 which is the main interface for interacting with Logical Files.
 
-A Logical File contains a header, File Header Logical Header (FTLR), and
-optionally a trailer, File Trailer Logical Record (FTLR). These contain general
-information specific to *this* LF such as the file name and date of generation:
+A Logical File contains a File Header Logical Header (FTLR), and optionally a
+File Trailer Logical Record (FTLR). These contain general information specific
+to *this* LF such as the file name and date of generation:
 
 .. code-block:: python
 
@@ -45,7 +45,7 @@ information specific to *this* LF such as the file name and date of generation:
 
 While the FHLR and FTLR are specific to one Logical File, the Reel
 Header/Trailer (RHLR/RTLR) and Tape Header/Trailer (THLR/TTLR) contain general
-information that applies to the reel and tape, respectably. These records can
+information that applies to the reel and tape, respectively. These records can
 also be reached directly from the Logical File:
 
 .. code-block:: python
@@ -73,5 +73,5 @@ Read all the curve data by passing each DFSR to :func:`dlisio.lis.curves`:
 
 .. note::
    LIS79 opens for the presence of duplicated DFSR, for redundancy. Currently,
-   dlisio have no support for identifying redudant DFSR, and curves() will
-   return empty array's for these.
+   dlisio has no support for identifying redudant DFSRs, and curves() will
+   return empty arrays for these.

@@ -15,10 +15,10 @@ equally tedious for the consumer that wants to read them later on.
 LIS was designed to work with the physical medium tape. Physical tapes have a
 lot of limitations that modern computers do not have, such as a fixed storage
 size. LIS implements several layers of file segmentation mechanisms to
-effectively handle this. Some LIS files also embed an access mechanic that let
+effectively handle this. Some LIS files also embed an access mechanics that let
 tape-readers effectively seek the tape. This is all generally uninteresting
 information for a modern computer, but as these mechanics is embedded in the
-files, modern software still has to account for it. Adding additional layers of
-complexity.
+files, modern software still has to account for it. This adds additional layers
+of complexity.
 
 .. [1] LIS79, http://w3.energistics.org/LIS/lis-79.pdf
