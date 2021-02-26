@@ -1,8 +1,9 @@
 import pytest
-import dlisio
+
+from dlisio import dlis
 
 def assure_load(fpath, expected_logical_files_number = 2):
-    with dlisio.load(fpath) as batch:
+    with dlis.load(fpath) as batch:
         for f in batch:
             f.load()
         assert len(batch) == expected_logical_files_number
@@ -78,7 +79,7 @@ def test_layout_FF01():
 
 def test_layout_fdata_aligned():
     fpath = 'data/tif/layout/fdata-aligned.dlis'
-    with dlisio.load(fpath) as (f, *_):
+    with dlis.load(fpath) as (f, *_):
         f.load()
         frame = f.object('FRAME', 'FRAME-REPRCODE', 10, 0)
         curves = frame.curves()
@@ -86,7 +87,7 @@ def test_layout_fdata_aligned():
 
 def test_layout_fdata_disaligned():
     fpath = 'data/tif/layout/fdata-disaligned.dlis'
-    with dlisio.load(fpath) as (f, *_):
+    with dlis.load(fpath) as (f, *_):
         f.load()
         frame = f.object('FRAME', 'FRAME-REPRCODE', 10, 0)
         curves = frame.curves()
@@ -95,17 +96,17 @@ def test_layout_fdata_disaligned():
 def test_layout_truncated_in_data():
     fpath = 'data/tif/layout/truncated-in-data.dlis'
     with pytest.raises(RuntimeError) as excinfo:
-        _ = dlisio.load(fpath)
+        _ = dlis.load(fpath)
     assert "File truncated in Logical Record Segment" in str(excinfo.value)
 
 def test_layout_truncated_in_header():
     fpath = 'data/tif/layout/truncated-in-header.dlis'
     with pytest.raises(RuntimeError) as excinfo:
-        _ = dlisio.load(fpath)
+        _ = dlis.load(fpath)
     assert "unexpected EOF" in str(excinfo.value)
 
 def test_layout_truncated_after_header():
     fpath = 'data/tif/layout/truncated-after-header.dlis'
     with pytest.raises(RuntimeError) as excinfo:
-        _ = dlisio.load(fpath)
+        _ = dlis.load(fpath)
     assert "unexpected EOF" in str(excinfo.value)
