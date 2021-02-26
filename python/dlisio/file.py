@@ -15,7 +15,7 @@ class physicalfile(tuple):
     The DLIS-file itself is the folder, and the Logical Files are the actual
     files::
 
-        your_file.lis
+        your_file.dlis
         |
         |-> Logical File 0
         |-> Logical File 1
@@ -24,9 +24,9 @@ class physicalfile(tuple):
         |-> Logical File n
 
 
-    Each LF is a logical grouping of log data and metadata related the
-    acqsition of those logs. The LF's are independed of each other and can be
-    thought off as seperate files.
+    Each LF is a logical grouping of log data and metadata related to the
+    acquisition of those logs. The LF's are independent of each other and can
+    be thought of as separate files.
 
     This class is essentially a tuple of all the Logical Files in a regular
     file, and is what's being returned by :func:`dlisio.load`. The LFs can be
@@ -37,8 +37,9 @@ class physicalfile(tuple):
 
     The DLIS-specification, rp66v1, opens up for a Logical File to span
     multiple physical files. dlisio does not currently have cross-file support.
-    However, dlisio will read such files just fine, but without any semantics
-    for tying the LF from one file to the next.
+    We have yet to see any files in the wild using this feature. Note that
+    dlisio will still be able to open such files, but any internal
+    cross-referencing will be lost.
 
     See Also
     --------
@@ -63,8 +64,8 @@ class physicalfile(tuple):
     def describe(self, width=80, indent=''):
         """ Describe
 
-        Returns a human-readable and printable summary of the current class
-        instance.
+        Returns a human-readable and printable summary of the current Physical
+        File.
         """
         buf = StringIO()
         plumbing.describe_header(buf, 'Physical File', width, indent)
