@@ -2,27 +2,8 @@ import os
 
 from . import core
 from .file import physicalfile, logicalfile
+from .open import open
 from .errors import ErrorHandler
-
-def open(path):
-    """ Open a file
-
-    Open a low-level file handle. This is not intended for end-users - rather,
-    it's an escape hatch for very broken files that dlisio cannot handle.
-
-    Parameters
-    ----------
-    path : str_like
-
-    Returns
-    -------
-    stream : dlisio.core.stream
-
-    See Also
-    --------
-    dlisio.load
-    """
-    return core.open(str(path))
 
 def load(path, error_handler = None):
     """ Loads a file and returns one filehandle pr logical file.
