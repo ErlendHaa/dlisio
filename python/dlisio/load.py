@@ -29,11 +29,11 @@ def load(path, error_handler = None):
 
     Load does more than just opening the file. A DLIS file has no random access
     in itself, so load scans the entire file and creates its own index to
-    enumlate random access.
+    emulate random access.
 
-    DLIS-files segmented into into Logical Files, see :class:`physical_file`
-    and :class:`logical_file`. The partitioning into Logical Files also happens
-    at load.
+    DLIS-files are segmented into Logical Files, see :class:`physical_file` and
+    :class:`logical_file`. The partitioning into Logical Files also happens at
+    load.
 
     Parameters
     ----------
@@ -54,9 +54,12 @@ def load(path, error_handler = None):
     -----
 
     It's not uncommon that DLIS files are stored with different file extensions
-    than `.DLIS`. For example `.TIF`. Load does not care about file extension at
+    than `.DLIS`. For example `.TIF` [1]. Load does not care about file extension at
     all. As long as the content adheres to the Digital Log Interchange
     Standard, load will read it as such.
+
+    [1] TIF in this case refers to TapeImageFormat, and is not to be confussed
+        with the image format TIFF.
 
     Examples
     --------

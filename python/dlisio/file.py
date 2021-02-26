@@ -87,12 +87,12 @@ class logicalfile(object):
     """Logical file (LF)
 
     This class supplies the main interface for working with a single Logical
-    File. A Logical File contains log data and metadata related the acquisition
-    of the logs. The data is segmented into 'objects' - in lack of a better
-    word.  There are different object-types for different types of data. The
-    logs can be acquired through Frame- and Channel-objects
-    (:class:`dlisio.plumbing.Frame` and :class:`dlisio.plumbing.Channel`). There
-    is also an abundance of object-types for storing metadata; Tool,
+    File. A Logical File contains log data and metadata related to the
+    acquisition of the logs. The metadata is stored as 'objects' - in lack of a
+    better word.  There are different object-types for different types of data.
+    The logs can be acquired through Frame- and Channel-objects
+    (:class:`dlisio.plumbing.Frame` and :class:`dlisio.plumbing.Channel`).
+    There is also an abundance of object-types for storing other metadata: Tool,
     Parameter, Measurement and Calibration to name a few.
 
     :py:func:`object()` and :py:func:`find()` let you access specific objects
