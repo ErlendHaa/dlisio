@@ -31,11 +31,14 @@ def get_encodings():
 def set_encodings(encodings):
     """Set codepages to use for decoding strings
 
-    Both LIS79 and RP66 specifies that all strings should be in ASCII, meaning
-    7-bit. Strings in ASCII have identical bitwise representation in UTF-8, and
-    python strings are in UTF-8. However, a lot of files contain strings that
-    aren't ASCII, but encoded in some way - a common is the degree symbol [1]_,
-    but plenty of files use other encodings too.
+    RP66 specifies that all strings should be in ASCII, meaning 7-bit. Strings
+    in ASCII have identical bitwise representation in UTF-8, and python strings
+    are in UTF-8. However, a lot of files contain strings that aren't ASCII,
+    but encoded in some way - a common is the degree symbol [1]_, but plenty of
+    files use other encodings too.
+
+    LIS does not explicitly mention that strings should be ASCII, but it also
+    doesn't mention any encodings.
 
     This function sets the code pages that dlisio will try *in order* when
     decoding the string-types specified by LIS and DLIS. UTF-8 will always be
