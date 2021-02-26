@@ -85,14 +85,14 @@ class logical_file():
        The underlying lis-aware IO-device that acts on the file. The iodevice
        impements primitive io-operations such as seek, read and tell, but also
        higher level abstractions such as read_record. For normal workflows it
-       should not nessesary to interact directly with the io-device.
+       should not be necessary to interact directly with the io-device.
 
     index : dlisio.core.lis_record_index
        A dlisio-created index of all Logical Records (LR) in the current
        Logical File (LF). The index is created at load and gives dlisio random
        access to the LR's. The index can be iterated and records can be
        extracted using :attr:`dlisio.lis.logical_file.io`. For normal workflow
-       it should not be nessesary to interact directly with the index.
+       it should not be necessary to interact directly with the index.
 
     reel : dlisio.lis.HeaderTrailer
         The reel that this Logical File (LF) belongs to.
@@ -122,8 +122,7 @@ class logical_file():
         """Close the file handle
 
         It is not necessary to call this method if you're using the `with`
-        statement, which will close the file for you. Calling methods on a
-        previously-closed file will raise `IOError`.
+        statement, which will close the file for you.
         """
         self.io.close()
 
@@ -196,7 +195,7 @@ class logical_file():
         """ Data Format Specification Records (DFSR)
 
         A DFSR contains all relevant information to extract a specific logset -
-        a logset being a set of channels/curve all sampled along a common
+        a logset being a set of channels/curves all sampled along a common
         index.
 
         See also
