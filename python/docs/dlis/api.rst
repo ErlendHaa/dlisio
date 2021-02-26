@@ -148,8 +148,3 @@ Unknown
 .......
 .. autoclass:: Unknown(BasicObject)
     :exclude-members: create
-
-Error handling
---------------
-.. autoclass:: dlisio.errors.ErrorHandler()
-.. autoclass:: dlisio.errors.Actions()

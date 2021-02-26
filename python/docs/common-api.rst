@@ -10,3 +10,13 @@ Open
 ----
 .. autofunction:: dlisio.open
 
+Error handling
+--------------
+
+.. note::
+   Although the error-handling features of dlisio is not tied to a specific
+   file format, it's currently only used by the DLIS reader.
+
+.. autoclass:: dlisio.errors.ErrorHandler()
+.. autoclass:: dlisio.errors.Actions()
+
